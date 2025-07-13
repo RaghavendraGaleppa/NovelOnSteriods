@@ -13,4 +13,4 @@ secrets = Secrets(**secrets_dict)
 
 
 with open("src/prompts/NovelDescriptionPrompt-v1.md", "r") as f:
-    novel_description_prompt_template = f.read()
+    novel_description_prompt = f.read()
