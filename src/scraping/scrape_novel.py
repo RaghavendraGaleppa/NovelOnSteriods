@@ -7,12 +7,10 @@ class Scrape1qxs(scrapy.Spider):
     start_urls = [
         "https://www.1qxs.com/all/0_4_0_0_0_1.html" # The first page of the novel list
     ]
-
-    def __init__(self, *args, **kwargs):
-        self.db = kwargs['db']
-        self.items_container = kwargs.pop('items_container')
-        super(Scrape1qxs, self).__init__(*args, **kwargs)
-    
+    custom_settings = {
+        'USER_AGENT': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36',
+        'DOWNLOAD_DELAY': 2 # Adds a 2-second delay between requests
+    }
 
     def parse(self, response):
         # List out all the novel links
@@ -63,6 +61,7 @@ class Scrape1qxs(scrapy.Spider):
             "classification_raw": novel_data["classification_raw"],
             "tags_raw": novel_data["tags_raw"]
         }
+
 
         # Translate the data
         yield novel_data
