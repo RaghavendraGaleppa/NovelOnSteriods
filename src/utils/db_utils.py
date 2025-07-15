@@ -9,9 +9,8 @@ from threading import Lock
 from typing import Optional
 
 # Local Imports
-from src.utils.logging_utils import get_logger
+from src.main import logger
 
-logger = get_logger()
 
 
 def get_db_client(host: str, port: int, username: str, pwd: str, db_name: str, db_auth_source: str, ping: bool = True) -> Database:
@@ -19,6 +18,7 @@ def get_db_client(host: str, port: int, username: str, pwd: str, db_name: str, d
     Just return a pymongo client. Make sure to pass username and pwd in quote_plus.
     Also make sure to ping before returning the client based on the ping param
     """
+    logger.debug(f"Getting db client for {host}:{port} with username {username}, db: {db_name}, db_auth_source: {db_auth_source}")
     username = quote_plus(username)
     pwd = quote_plus(pwd)
     client = MongoClient(
@@ -32,5 +32,5 @@ def get_db_client(host: str, port: int, username: str, pwd: str, db_name: str, d
     # Ping the server
     if ping:
         client.admin.command("ping")
-        logger.info("Pinged the server")
+        logger.debug("Pinged the server")
     return db

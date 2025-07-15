@@ -15,7 +15,11 @@ with open(secrets_json_path, "r") as f:
     secrets_dict = json.load(f)
 
 secrets = Secrets(**secrets_dict)
+logger = get_logger("main")
+
+logger.info("Starting the main script")
 
 
 with open("src/prompts/NovelDescriptionPrompt-v1.md", "r") as f:
     novel_description_prompt = f.read()
+    
