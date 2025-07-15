@@ -30,6 +30,7 @@ def get_db_client(host: str, port: int, username: str, pwd: str, db_name: str, d
     logger.info(f"Connected to the database {db_name}")
     # Ping the server
     if ping:
+        logger.debug(f"Pinging the server at: {host}:{port}")
         client.admin.command("ping")
         logger.debug("Pinged the server")
     return db

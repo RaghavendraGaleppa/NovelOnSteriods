@@ -44,5 +44,5 @@ class Scrape1qxs(scrapy.Spider):
         }
 
 
-        # The data need to stroed in the db
+        # The data need to stored in the db
         
