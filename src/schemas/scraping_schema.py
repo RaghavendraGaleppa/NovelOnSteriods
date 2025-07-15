@@ -15,7 +15,7 @@ class NovelRawData(BaseModel, DBFuncMixin):
     _collection_name: ClassVar[str] = "novels" 
 
     # Info about the novel
-    source_name: str
+    source_name: str  # Basically whether its 1qxs, 69shu or any other source
     novel_source_id: str
     novel_url: str
     chapter_list_url: str
@@ -27,7 +27,6 @@ class NovelRawData(BaseModel, DBFuncMixin):
     classification_raw: str 
     tags_raw: List[str]
     
-
     # Metadata
     _all_data_parsed: bool = False  # This will be set to True after the raw data is fully translated
 

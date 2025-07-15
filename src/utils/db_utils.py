@@ -12,7 +12,6 @@ from typing import Optional
 from src.main import logger
 
 
-
 def get_db_client(host: str, port: int, username: str, pwd: str, db_name: str, db_auth_source: str, ping: bool = True) -> Database:
     """
     Just return a pymongo client. Make sure to pass username and pwd in quote_plus.
