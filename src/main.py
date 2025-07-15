@@ -1,7 +1,12 @@
-from schemas.secrets_schema import Secrets
+# Standard library imports
 from dotenv import load_dotenv
 import json
 import os
+
+# Project imports
+from src.schemas.secrets_schema import Secrets
+from src.utils.logging_utils import get_logger
+from src.utils.db_utils import get_db_client
 
 secrets_json_path = os.environ.get("SECRETS_JSON_PATH", "secrets.json")
 print(f"Loading secrets from {secrets_json_path}")

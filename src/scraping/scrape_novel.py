@@ -27,7 +27,7 @@ class Scrape1qxs(scrapy.Spider):
         tags_raw: List[str] = response.css("span.tags a::text").getall()
         image_url: str = response.css('div.image img::attr(data-original)').get()
         novel_source_id = novel_url.split(".html")[0].split("/")[-1]
-        novel_list_url = "https://www.1qxs.com/list/" + novel_source_id + ".html"
+        chapter_list_url = "https://www.1qxs.com/list/" + novel_source_id + ".html"
 
         novel_data = {
             # Make exact fiesl in this dict
@@ -39,34 +39,10 @@ class Scrape1qxs(scrapy.Spider):
             "tags_raw": tags_raw,
             "image_url": image_url,
             "novel_source_id": novel_source_id,
-            "novel_list_url": novel_list_url,
+            "chapter_list_url": chapter_list_url,
             "source_name": "1qxs"
         }
-        
-        # Go to the list link and make sure to pass the variables
-        yield response.follow(novel_list_url, callback=self.parse_novel_list, meta={"novel_data": novel_data})
-
-    def parse_novel_list(self, response):
-        novel_data = response.meta["novel_data"]
-        chapter_list = response.css("div.list ul li")
-        n_chapters_raw = len(chapter_list)
-
-        novel_data["n_chapters_raw"] = n_chapters_raw
-
-        # Find data that needs to be translated
-        novel_data_to_translate = {
-            "title_raw": novel_data["title_raw"],
-            "author_raw": novel_data["author_raw"],
-            "description_raw": novel_data["description_raw"],
-            "classification_raw": novel_data["classification_raw"],
-            "tags_raw": novel_data["tags_raw"]
-        }
 
 
-        # Translate the data
-        yield novel_data
-
-
-
-        
+        # The data need to stroed in the db
         
