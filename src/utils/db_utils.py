@@ -1,5 +1,5 @@
-
-# Standard Package Imports
+import os
+import dotenv
 from pymongo import MongoClient
 from pymongo.database import Database
 from pymongo.server_api import ServerApi
@@ -8,8 +8,11 @@ import time
 from threading import Lock
 from typing import Optional
 
-# Local Imports
-from src.main import logger
+
+from src.utils.logging_utils import get_logger
+
+dotenv.load_dotenv()
+logger = get_logger(os.environ.get("MAIN_LOGGER_NAME", "main"))
 
 
 def get_db_client(host: str, port: int, username: str, pwd: str, db_name: str, db_auth_source: str, ping: bool = True) -> Database:
