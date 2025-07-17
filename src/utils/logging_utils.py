@@ -9,14 +9,14 @@ import os
 
 load_dotenv()
 
-def get_logger(name: str=os.environ["MAIN_LOGGER_NAME"]) -> logging.Logger:
+def get_logger(name: str=os.environ["MAIN_LOGGER_NAME"], level: int=DEBUG) -> logging.Logger:
     """
     Get a logger object.
     """
     logger = getLogger(name)
     if not logger.handlers:
         logger_format_str = f"[{name}][%(asctime)s][%(levelname)s]: %(message)s"
-        logger.setLevel(DEBUG)
+        logger.setLevel(level)
         handler = StreamHandler()
         handler.setFormatter(Formatter(logger_format_str))
         logger.addHandler(handler)
