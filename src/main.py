@@ -1,7 +1,8 @@
 # Standard library imports
-from dotenv import load_dotenv
 import json
 import os
+from dotenv import load_dotenv
+from datetime import timedelta
 
 # Project imports
 from src.schemas.secrets_schema import Secrets
@@ -35,3 +36,21 @@ db = get_db_client(
 with open("src/prompts/NovelDescriptionPrompt-v1.md", "r") as f:
     novel_description_prompt = f.read()
     
+
+# Celery setup
+from celery import Celery
+
+celery_app = Celery(
+    "celery_app",
+    broker="redis://localhost:6379/0",
+    backend="redis://localhost:6379/0",
+    include=["src.celery_tasks.beat_tasks"]
+)
+
+
+celery_app.conf.beat_schedule = {
+    "beat-tags-translation-and-update": {
+        'task': "src.celery_tasks.beat_tasks.translate_and_update_tags",
+        'schedule': timedelta(minutes=2),
+    }
+}

@@ -20,7 +20,7 @@ class DBFuncMixin:
                 {"_id": self.id},
                 {"$set": self.model_dump(exclude={"_id"})} # type: ignore
         )
-
+            
     @classmethod
     def load(cls, db: Database, id: ObjectId):
         data = db[cls._collection_name].find_one({"_id": id})
