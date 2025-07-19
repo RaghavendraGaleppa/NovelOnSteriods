@@ -1,6 +1,9 @@
 from pymongo.database import Database
 from bson import ObjectId
-from typing import Optional
+from typing import Optional, Union, List, Any, TypeVar, Type
+
+T = TypeVar("T", bound="DBFuncMixin")
+
 
 class DBFuncMixin:
 
@@ -22,9 +25,13 @@ class DBFuncMixin:
         )
             
     @classmethod
-    def load(cls, db: Database, id: ObjectId):
-        data = db[cls._collection_name].find_one({"_id": id})
-        if data is None:
-            raise ValueError(f"Record with id {id} not found")
-        return cls(**data)
+    def load(cls: Type[T], db: Database, query: dict, many: bool=False) -> Optional[Union[T, List[T]]]:
+        if many:
+            data = db[cls._collection_name].find(query)
+        else:
+            data = db[cls._collection_name].find_one(query)
+        if not data:
+            return None
+        
+        return cls(**data) if not many else [cls(**item) for item in data] # type: ignore
     

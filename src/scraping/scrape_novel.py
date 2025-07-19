@@ -56,7 +56,7 @@ class Scrape1qxs(scrapy.Spider):
         novel_data_dict = NovelRawData(**novel_data)
         novel_data_dict.update(db=db)
         # Refresh the data
-        novel_data_dict = NovelRawData.load(db=db, id=novel_data_dict.id) # type: ignore
+        novel_data_dict = NovelRawData.load(db=db, query={"id": novel_data_dict.id}) # type: ignore
         
         # Send a message to the translator to parse the novel details
         yield novel_data_dict
