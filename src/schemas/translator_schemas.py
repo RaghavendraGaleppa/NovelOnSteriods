@@ -20,6 +20,7 @@ class TranslatorMetadata(BaseModel, DBFuncMixin):
     error_message: Optional[str] = Field(default=None, description="The error message if the translation failed. It will remain None if the translation is successfull")
 
     novel_id: ObjectId = Field(description="The id of the novel that is being translated")
+    chapter_id: Optional[ObjectId] = Field(default=None, description="The id of the chapter that is being translated. If the translation is for other things, the novel_id is enough")
 
     provider_name: str = Field(description="The name of the api provider through which this translation is taking place")
     model_name: str = Field(description="The name of the model used for this translation")
