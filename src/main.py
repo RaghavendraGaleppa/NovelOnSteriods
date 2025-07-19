@@ -33,10 +33,6 @@ db = get_db_client(
     db_auth_source=db_config.db_auth_source
 )
 
-with open("src/prompts/NovelDescriptionPrompt-v1.md", "r") as f:
-    novel_description_prompt = f.read()
-    
-
 # Celery setup
 from celery import Celery
 
