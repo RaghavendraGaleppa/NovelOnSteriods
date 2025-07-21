@@ -3,7 +3,7 @@ import hashlib
 from typing import List
 
 from config import db
-from src.schemas.scraping_schema import NovelRawData
+from nos.schemas.scraping_schema import NovelRawData
 from pymongo.database import Database
 
 

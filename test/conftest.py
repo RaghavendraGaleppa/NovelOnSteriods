@@ -4,8 +4,8 @@ from logging import Logger
 from pymongo.database import Database
 from typing import Generator, Any
 
-from config import db_config, get_db_client
-from src.utils.logging_utils import get_logger
+from nos.config import db_config, get_db_client
+from nos.utils.logging_utils import get_logger
 
 
 

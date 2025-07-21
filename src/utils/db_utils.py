@@ -9,7 +9,7 @@ from threading import Lock
 from typing import Optional
 
 
-from src.utils.logging_utils import get_logger
+from nos.utils.logging_utils import get_logger
 
 dotenv.load_dotenv()
 logger = get_logger(os.environ.get("MAIN_LOGGER_NAME", "main"))

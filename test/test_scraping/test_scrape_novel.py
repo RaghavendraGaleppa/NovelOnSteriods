@@ -1,8 +1,8 @@
 from logging import Logger
 from pytest import MonkeyPatch
 from pymongo.database import Database
-from src.schemas.scraping_schema import NovelRawData
-from src.run_spider import get_pipeline_results
+from nos.schemas.scraping_schema import NovelRawData
+from nos.run_spider import get_pipeline_results
 
 
 

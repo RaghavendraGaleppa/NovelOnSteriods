@@ -4,7 +4,7 @@ from pymongo.database import Database
 from bson import ObjectId
 from datetime import datetime
 
-from src.schemas.mixins import DBFuncMixin
+from nos.schemas.mixins import DBFuncMixin
 from config import logger
 
 
