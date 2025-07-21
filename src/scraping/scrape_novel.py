@@ -2,7 +2,7 @@ import scrapy
 import hashlib
 from typing import List
 
-from src.main import db
+from config import db
 from src.schemas.scraping_schema import NovelRawData
 from pymongo.database import Database
 
@@ -12,7 +12,7 @@ class Scrape1qxs(scrapy.Spider):
     custom_settings = {
         'USER_AGENT': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36',
         'DOWNLOAD_DELAY': 2, # Adds a 2-second delay between requests
-        'CONCURRENT_REQUESTS_PER_DOMAIN': 8,
+        'CONCURRENT_REQUESTS_PER_DOMAIN': 1,
         'AUTOTHROTTLE_ENABLED': True,
     }
 

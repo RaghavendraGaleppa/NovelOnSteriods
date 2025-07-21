@@ -5,7 +5,7 @@ from bson import ObjectId
 from datetime import datetime
 
 from src.schemas.mixins import DBFuncMixin
-from src.main import logger
+from config import logger
 
 
 class NovelRawData(BaseModel, DBFuncMixin):
