@@ -2,6 +2,7 @@ import pytest
 from uuid import uuid4
 from logging import Logger
 from pymongo.database import Database
+from pytest import MonkeyPatch
 from typing import Generator, Any
 
 from nos.config import db_config, get_db_client
@@ -38,3 +39,8 @@ def db(logger: Logger) -> Generator[Database, Any, Any]:
         logger.debug(f"Closed db client")
 
     
+
+
+@pytest.fixture(scope="function", autouse=True)
+def patch_db_everywhere(db: Database, monkeypatch: MonkeyPatch):
+    monkeypatch.setattr("nos.config.db", db)

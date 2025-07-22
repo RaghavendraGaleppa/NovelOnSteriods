@@ -2,9 +2,8 @@ import scrapy
 import hashlib
 from typing import List
 
-from nos.config import db
+import nos.config
 from nos.schemas.scraping_schema import NovelRawData
-from pymongo.database import Database
 
 
 class Scrape1qxs(scrapy.Spider):
@@ -17,8 +16,9 @@ class Scrape1qxs(scrapy.Spider):
     }
 
     def __init__(self, *args, **kwargs):
-        super().__init__(*args, **kwargs)
+        super(Scrape1qxs, self).__init__(*args, **kwargs)
         self.max_pages = int(getattr(self, "max_pages", 100))
+        self.max_novels_per_page = int(getattr(self, "max_novels_per_page", 20))
 
     def start_requests(self):
         self.start_urls = [f"https://www.1qxs.com/all/0_4_0_0_0_{i}.html" for i in range(1, self.max_pages+1)] # The first page of the novel list ]
@@ -28,7 +28,7 @@ class Scrape1qxs(scrapy.Spider):
     def parse(self, response):
         # List out all the novel links
         novel_links = response.css("div.name.line_1 a::attr(href)").getall()
-        for novel_link in novel_links:
+        for novel_link in novel_links[:self.max_novels_per_page]:
             yield response.follow(novel_link, callback=self.parse_novel)
 
     def parse_novel(self, response):
@@ -63,9 +63,9 @@ class Scrape1qxs(scrapy.Spider):
 
         # The data need to stored in the db
         novel_data_dict = NovelRawData(**novel_data)
-        novel_data_dict.update(db=db)
+        novel_data_dict.update(db=nos.config.db)
         # Refresh the data
-        novel_data_dict = NovelRawData.load(db=db, query={"id": novel_data_dict.id}) # type: ignore
+        novel_data_dict = NovelRawData.load(db=nos.config.db, query={"id": novel_data_dict.id}) # type: ignore
         
         # Send a message to the translator to parse the novel details
         yield novel_data_dict
