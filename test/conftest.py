@@ -44,9 +44,22 @@ def db(logger: Logger) -> Generator[Database, Any, Any]:
         logger.debug(f"Closed db client")
 
 
-@pytest.fixture(scope="function", autouse=True)
-def patch_db_everywhere(db: Database, monkeypatch: MonkeyPatch):
-    monkeypatch.setattr("nos.config.db", db)
+
+@pytest.fixture(scope="session")
+def monkeymodule():
+    from _pytest.monkeypatch import MonkeyPatch
+    mpatch = MonkeyPatch()
+    yield mpatch
+    mpatch.undo()
+
+@pytest.fixture(scope="session", autouse=True)
+def patch_db_everywhere(db: Database, monkeymodule: MonkeyPatch):
+    monkeymodule.setattr("nos.config.db", db)
+    # Print the stats of the db
+    from nos.config import db
+    print(f"MonkeyPatched DB name: {db.name}")
+    print(f"MonkeyPatched DB client: {db.client}")
+    print(f"MonkeyPatched DB server info: {db.client.server_info()}")
 
 
 
