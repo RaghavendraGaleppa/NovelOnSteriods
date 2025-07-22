@@ -50,7 +50,7 @@ def patch_db_everywhere(db: Database, monkeypatch: MonkeyPatch):
 
 
 
-@pytest.fixture(scope="module")
+@pytest.fixture(scope="class")
 def scraped_data(db: Database) -> List[NovelRawData]:
     """ Delete any existing data """
     data = NovelRawData.load(db=db, query={"source_name": "1qxs"}, many=True)

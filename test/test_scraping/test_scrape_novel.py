@@ -27,6 +27,7 @@ class TestScrape1qxs:
     def test_data_type(self, scraped_data: List[NovelRawData]):
         assert isinstance(scraped_data, list)
         assert all(isinstance(item, NovelRawData) for item in scraped_data)
+        assert len(scraped_data) == 5
 
     def test_novel_data_urls(self, scraped_data: List[NovelRawData]):
         for item in scraped_data:
