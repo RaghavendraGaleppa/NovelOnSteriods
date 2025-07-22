@@ -40,13 +40,13 @@ celery_app = Celery(
     "celery_app",
     broker="redis://localhost:6379/0",
     backend="redis://localhost:6379/0",
-    include=["src.celery_tasks.beat_tasks"]
+    include=["nos.celery_tasks.beat_tasks"]
 )
 
 
 celery_app.conf.beat_schedule = {
     "beat-tags-translation-and-update": {
-        'task': "src.celery_tasks.beat_tasks.translate_and_update_tags",
+        'task': "nos.celery_tasks.beat_tasks.translate_and_update_tags",
         'schedule': timedelta(minutes=2),
     }
 }

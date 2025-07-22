@@ -8,7 +8,7 @@ from nos.run_spider import get_pipeline_results
 
 def test_Scrape1qxs(db: Database, logger: Logger, monkeypatch: MonkeyPatch):
 
-    monkeypatch.setattr("src.config.db", db)
+    monkeypatch.setattr("nos.config.db", db)
 
     results = get_pipeline_results(max_pages=10)
 
