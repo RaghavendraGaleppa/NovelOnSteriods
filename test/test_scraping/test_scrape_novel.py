@@ -15,9 +15,8 @@ logging.getLogger('py.warnings').setLevel(logging.ERROR)
 
 def test_Scrape1qxs(db: Database, logger: Logger):
 
-    # Import the db from nos.config and print db name and other info
     run_spider(max_pages=1, max_novels_per_page=5)
-    # Load the data from the db
+
     data = NovelRawData.load(db=db, query={"source_name": "1qxs"}, many=True)
     assert data is not None
     assert isinstance(data, list)

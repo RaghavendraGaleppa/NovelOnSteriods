@@ -27,6 +27,9 @@ def db(logger: Logger) -> Generator[Database, Any, Any]:
         db_name=db_name,
         db_auth_source=db_config.db_auth_source
     )
+    logger.debug(f"Test DB name: {db.name}")
+    logger.debug(f"Test DB client: {db.client}")
+    logger.debug(f"Test DB server info: {db.client.server_info()}")
     
     yield db
 
@@ -37,8 +40,6 @@ def db(logger: Logger) -> Generator[Database, Any, Any]:
     finally:
         db.client.close()
         logger.debug(f"Closed db client")
-
-    
 
 
 @pytest.fixture(scope="function", autouse=True)
