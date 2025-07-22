@@ -24,6 +24,10 @@ class DBFuncMixin:
                 {"$set": self.model_dump(exclude={"_id"})} # type: ignore
         )
             
+    def delete(self, db: Database):
+        collection = db[self._collection_name]
+        collection.delete_one({"_id": self.id})
+            
     @classmethod
     def load(cls: Type[T], db: Database, query: dict, many: bool=False) -> Optional[Union[T, List[T]]]:
         if many:

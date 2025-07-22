@@ -5,10 +5,10 @@ from dotenv import load_dotenv
 from datetime import timedelta
 
 # Project imports
-from src.schemas.secrets_schema import Secrets
-from src.schemas.config_schemas import DBConfigSchema
-from src.utils.logging_utils import get_logger
-from src.utils.db_utils import get_db_client
+from nos.schemas.secrets_schema import Secrets
+from nos.schemas.config_schemas import DBConfigSchema
+from nos.utils.logging_utils import get_logger
+from nos.utils.db_utils import get_db_client
 
 secrets_json_path = os.environ.get("SECRETS_JSON_PATH", "secrets.json")
 print(f"Loading secrets from {secrets_json_path}")
@@ -33,10 +33,6 @@ db = get_db_client(
     db_auth_source=db_config.db_auth_source
 )
 
-with open("src/prompts/NovelDescriptionPrompt-v1.md", "r") as f:
-    novel_description_prompt = f.read()
-    
-
 # Celery setup
 from celery import Celery
 
@@ -44,13 +40,13 @@ celery_app = Celery(
     "celery_app",
     broker="redis://localhost:6379/0",
     backend="redis://localhost:6379/0",
-    include=["src.celery_tasks.beat_tasks"]
+    include=["nos.celery_tasks.beat_tasks"]
 )
 
 
 celery_app.conf.beat_schedule = {
     "beat-tags-translation-and-update": {
-        'task': "src.celery_tasks.beat_tasks.translate_and_update_tags",
+        'task': "nos.celery_tasks.beat_tasks.translate_and_update_tags",
         'schedule': timedelta(minutes=2),
     }
 }

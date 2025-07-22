@@ -2,24 +2,33 @@ import scrapy
 import hashlib
 from typing import List
 
-from src.main import db
-from src.schemas.scraping_schema import NovelRawData
+import nos.config
+from nos.schemas.scraping_schema import NovelRawData
 
 
 class Scrape1qxs(scrapy.Spider):
     name = "scrape_1qxs"
-    start_urls = [
-        f"https://www.1qxs.com/all/0_4_0_0_0_{i}.html" for i in range(1, 100) # The first page of the novel list
-    ]
     custom_settings = {
         'USER_AGENT': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36',
-        'DOWNLOAD_DELAY': 2 # Adds a 2-second delay between requests
+        'DOWNLOAD_DELAY': 2, # Adds a 2-second delay between requests
+        'CONCURRENT_REQUESTS_PER_DOMAIN': 1,
+        'AUTOTHROTTLE_ENABLED': True,
     }
+
+    def __init__(self, *args, **kwargs):
+        super(Scrape1qxs, self).__init__(*args, **kwargs)
+        self.max_pages = int(getattr(self, "max_pages", 100))
+        self.max_novels_per_page = int(getattr(self, "max_novels_per_page", 20))
+
+    def start_requests(self):
+        self.start_urls = [f"https://www.1qxs.com/all/0_4_0_0_0_{i}.html" for i in range(1, self.max_pages+1)] # The first page of the novel list ]
+        for url in self.start_urls:
+            yield scrapy.Request(url=url, callback=self.parse)
 
     def parse(self, response):
         # List out all the novel links
         novel_links = response.css("div.name.line_1 a::attr(href)").getall()
-        for novel_link in novel_links:
+        for novel_link in novel_links[:self.max_novels_per_page]:
             yield response.follow(novel_link, callback=self.parse_novel)
 
     def parse_novel(self, response):
@@ -54,9 +63,9 @@ class Scrape1qxs(scrapy.Spider):
 
         # The data need to stored in the db
         novel_data_dict = NovelRawData(**novel_data)
-        novel_data_dict.update(db=db)
+        novel_data_dict.update(db=nos.config.db)
         # Refresh the data
-        novel_data_dict = NovelRawData.load(db=db, query={"id": novel_data_dict.id}) # type: ignore
+        novel_data_dict = NovelRawData.load(db=nos.config.db, query={"id": novel_data_dict.id}) # type: ignore
         
         # Send a message to the translator to parse the novel details
         yield novel_data_dict
