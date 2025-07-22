@@ -2,7 +2,7 @@ import scrapy
 import hashlib
 from typing import List
 
-from config import db
+from nos.config import db
 from nos.schemas.scraping_schema import NovelRawData
 from pymongo.database import Database
 
