@@ -3,10 +3,12 @@ from uuid import uuid4
 from logging import Logger
 from pymongo.database import Database
 from pytest import MonkeyPatch
-from typing import Generator, Any
+from typing import Generator, Any, List
 
 from nos.config import db_config, get_db_client
 from nos.utils.logging_utils import get_logger
+from nos.schemas.scraping_schema import NovelRawData
+from nos.run_spider import run_spider
 
 
 
@@ -45,3 +47,20 @@ def db(logger: Logger) -> Generator[Database, Any, Any]:
 @pytest.fixture(scope="function", autouse=True)
 def patch_db_everywhere(db: Database, monkeypatch: MonkeyPatch):
     monkeypatch.setattr("nos.config.db", db)
+
+
+
+@pytest.fixture(scope="module")
+def scraped_data(db: Database) -> List[NovelRawData]:
+    """ Delete any existing data """
+    data = NovelRawData.load(db=db, query={"source_name": "1qxs"}, many=True)
+    if data is not None:
+        for item in data:
+            item.delete(db=db) # type: ignore
+    
+    # Run the spider
+    run_spider(max_pages=1, max_novels_per_page=5)
+
+    # Load the data again
+    data = NovelRawData.load(db=db, query={"source_name": "1qxs"}, many=True)
+    return data # type: ignore
