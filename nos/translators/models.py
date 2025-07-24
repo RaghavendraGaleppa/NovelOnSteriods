@@ -70,8 +70,6 @@ class Translator:
             messages.append({"role": "system", "content": system_prompt})
         messages.append({"role": "user", "content": user_prompt})
 
-        mock_rate_limit()
-
         start_time = datetime.datetime.now()
         response = self.client.chat.completions.with_raw_response.create(
             model=model_name,
