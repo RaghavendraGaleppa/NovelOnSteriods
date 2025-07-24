@@ -1,8 +1,11 @@
-from openai import OpenAI
+from openai import OpenAI, RateLimitError
 from typing import List, Optional
+from pathlib import Path
+import yaml
 
 from nos.config import logger
 from nos.schemas.secrets_schema import Provider
+from nos.schemas.translator_schemas import LLMCallResponseSchema
 from nos.exceptions.translator_exceptions import LLMNoResponseError, LLMNoUsageError
 
 
@@ -37,18 +40,27 @@ class Translator:
         messages.append({"role": "user", "content": text})
 
 
-        response = self.client.chat.completions.create(
+        response = self.client.chat.completions.with_raw_response.create(
             model=model_name,
             messages=messages,
             temperature=temperature,
             max_tokens=max_tokens
         )
 
-        if response.choices:
-            response_content = response.choices[0].message.content
-            if response.usage:
-                input_tokens = response.usage.prompt_tokens
-                output_tokens = response.usage.completion_tokens
+        headers = response.headers
+        remaining_req = headers.get('x-ratelimit-remaining-requests')
+        remaining_tok = headers.get('x-ratelimit-remaining-tokens')
+
+        completion = response.parse() # type: ignore
+
+
+        if completion.choices:
+            response_content = completion.choices[0].message.content
+            if not response_content:
+                raise LLMNoResponseError(self.current_provider, self.model_idx)
+            if completion.usage:
+                input_tokens = completion.usage.prompt_tokens
+                output_tokens = completion.usage.completion_tokens
             else:
                 if raise_usage_error:
                     raise LLMNoUsageError(self.current_provider, self.model_idx)
@@ -56,6 +68,20 @@ class Translator:
                     input_tokens = None
                     output_tokens = None
 
-            return response_content, input_tokens, output_tokens
+            return LLMCallResponseSchema(
+                response_text=response_content,
+                input_tokens=input_tokens,
+                output_tokens=output_tokens,
+                remaining_requests=remaining_req,
+                remaining_tokens=remaining_tok
+            )
         
         raise LLMNoResponseError(self.current_provider, self.model_idx)
+
+
+    def run_translation(self, text: str, prompt_name: str):
+
+        # Load the prompt
+        prompt_path = Path(__file__).parent.parent / "prompts" / f"{prompt_name}.yaml"
+        with open(prompt_path, "r") as f:
+            prompt = yaml.safe_load(f)

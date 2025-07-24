@@ -14,6 +14,9 @@ class TranlsationStatus(Enum):
 
 
 class TranslatorMetadata(BaseModel, DBFuncMixin):
+    class Config:
+        arbitrary_types_allowed = True  # This is to ensure ObjectIds work well
+
     _collection_name: str = "translator_metadata"
     
     status: TranlsationStatus = Field(default=TranlsationStatus.STARTED, description="The status of the translation")
@@ -24,8 +27,7 @@ class TranslatorMetadata(BaseModel, DBFuncMixin):
 
     provider_name: str = Field(description="The name of the api provider through which this translation is taking place")
     model_name: str = Field(description="The name of the model used for this translation")
-    prompt_version: str = Field(description="Each prompt will have a version associated with it. It can be found in the prompt yaml file")
-    prompt_name: str = Field(description="The name of the prompt that was used for this translation. This field can be found in the yaml prompt file")
+    prompt_id: ObjectId = Field(description="The id of the prompt that was used for this translation")
 
     start_time: datetime.datetime = Field(description="The start timestamp of translation") 
     end_time: Optional[datetime.datetime] = Field(default=None, description="The end timestamp of translation")
@@ -34,3 +36,13 @@ class TranslatorMetadata(BaseModel, DBFuncMixin):
     output_tokens: Optional[int] = Field(default=None, description="The number of tokens used for this translation")
     
     
+
+
+class LLMCallResponseSchema(BaseModel):
+    """ This schema is not supposed to be stored in the database. It is used to store the response from the llm call """
+
+    response_text: str
+    input_tokens: Optional[int] = None
+    output_tokens: Optional[int] = None
+    remaining_requests: int
+    remaining_tokens: int 
