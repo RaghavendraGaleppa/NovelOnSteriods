@@ -1,8 +1,8 @@
 import datetime
-from bson import ObjectId
-from typing import Optional
-from pydantic import BaseModel, Field
 from enum import Enum
+from bson import ObjectId
+from typing import Optional, Union, Dict
+from pydantic import BaseModel, Field
 
 from nos.schemas.mixins import DBFuncMixin
 
@@ -41,7 +41,7 @@ class TranslatorMetadata(BaseModel, DBFuncMixin):
 class LLMCallResponseSchema(BaseModel):
     """ This schema is not supposed to be stored in the database. It is used to store the response from the llm call """
 
-    response_text: str
+    response_content: Union[str, Dict]
     input_tokens: Optional[int] = None
     output_tokens: Optional[int] = None
     remaining_requests: int

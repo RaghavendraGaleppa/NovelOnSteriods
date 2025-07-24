@@ -1,6 +1,6 @@
 from pymongo.database import Database
 from bson import ObjectId
-from typing import Optional, Union, List, Any, TypeVar, Type
+from typing import Optional, Union, List, Any, TypeVar, Type, ClassVar
 
 T = TypeVar("T", bound="DBFuncMixin")
 
@@ -11,7 +11,7 @@ class DBFuncMixin:
         arbitrary_types_allowed = True
 
     id: Optional[ObjectId] = None
-    _collection_name: str
+    _collection_name: ClassVar[str]
 
     def update(self, db: Database):
         # If _id is None, insert it else update it
