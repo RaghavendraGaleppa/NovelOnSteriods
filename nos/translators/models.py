@@ -1,15 +1,35 @@
 import json
 import yaml
+import httpx
+import datetime
 from openai import OpenAI, RateLimitError
 from typing import List, Optional, Dict
 from pathlib import Path
+from tenacity import retry, stop_after_attempt, wait_exponential, retry_if_exception, RetryCallState
 
 from nos.config import logger, db
 from nos.schemas.secrets_schema import Provider
 from nos.schemas.prompt_schemas import PromptSchema
-from nos.schemas.translator_schemas import LLMCallResponseSchema
+from nos.schemas.translator_schemas import LLMCallResponseSchema, LLMCallResponseMetadata, TranlsationStatus
 from nos.exceptions.translator_exceptions import LLMNoResponseError, LLMNoUsageError
 
+
+def mock_rate_limit():
+    mock_request = httpx.Request("POST", "https://api.openai.com/v1/chat/completions")
+    
+    # Create a mock response object that looks like a real rate limit error
+    mock_response = httpx.Response(
+        status_code=429,
+        request=mock_request, # Attach the mock request to the response
+        json={"error": {"message": "You exceeded your current quota, please check your plan and billing details."}}
+    )
+    
+    # Manually raise the RateLimitError with the properly constructed mock response
+    raise RateLimitError(
+        message="Simulated Rate Limit Error for testing.",
+        response=mock_response,
+        body=None
+    )
 
 class Translator:
 
@@ -18,6 +38,14 @@ class Translator:
         self.providers = providers
         self.provider_idx = 0  # We'll start from the beginning
         self.model_idx = 0 # First model in the list
+        self.setup_client()
+
+
+    def switch_providers(self, retry_state: Optional[RetryCallState]=None):
+        if retry_state:
+            logger.info(f"Rate limited for {self.current_provider.name}. Attemp number: {retry_state.attempt_number}. Switching providers")
+        self.provider_idx = (self.provider_idx + 1) % len(self.providers)
+        self.model_idx = 0
         self.setup_client()
     
     def setup_client(self, provider: Optional[Provider]=None):
@@ -30,8 +58,8 @@ class Translator:
         self.model_idx = 0
         logger.info(f"Done Setting up client for provider: {provider.provider}, name: {provider.name}")
 
-
-    def call_provider(self, user_prompt: str, system_prompt: Optional[str]=None, temperature: float=0.1, max_tokens: int=2048, raise_usage_error: bool=True, response_format: Optional[Dict]=None):
+    
+    def call_provider(self, user_prompt: str, system_prompt: Optional[str]=None, temperature: float=0.1, max_tokens: int=2048, response_format: Optional[Dict]=None, raise_usage_error: bool=True):
         """ Send the text to llm and return response """
         model_name = self.current_provider.model_names[self.model_idx]
         logger.debug(f"Calling provider: {self.current_provider.provider}, model: {model_name}")
@@ -41,7 +69,9 @@ class Translator:
             messages.append({"role": "system", "content": system_prompt})
         messages.append({"role": "user", "content": user_prompt})
 
+        mock_rate_limit()
 
+        start_time = datetime.datetime.now()
         response = self.client.chat.completions.with_raw_response.create(
             model=model_name,
             messages=messages,
@@ -76,10 +106,13 @@ class Translator:
 
             return LLMCallResponseSchema(
                 response_content=response_content,
-                input_tokens=input_tokens,
-                output_tokens=output_tokens,
-                remaining_requests=remaining_req,
-                remaining_tokens=remaining_tok
+                metadata=LLMCallResponseMetadata(
+                    input_tokens=input_tokens,
+                    output_tokens=output_tokens,
+                    remaining_requests=remaining_req,
+                    remaining_tokens=remaining_tok,
+                    start_time=start_time,
+                )
             )
         
         raise LLMNoResponseError(self.current_provider, self.model_idx)
@@ -96,4 +129,25 @@ class Translator:
         user_prompt = user_prompt.format(**{"CHINESE_TAGS_JSON_ARRAY": text})
         model_params = prompt.model_parameters
 
-        response = self.call_provider(text, system_prompt, model_params.temperature, model_params.max_tokens)
+        r = retry(
+            retry=retry_if_exception([RateLimitError, json.JSONDecodeError]), # type: ignore
+            stop=stop_after_attempt(10),
+            wait=wait_exponential(multiplier=1, min=2, max=10),
+            before_sleep=lambda retry_state: self.switch_providers(retry_state)
+        )
+
+        try:
+            response: LLMCallResponseSchema = r(self.call_provider)(user_prompt, system_prompt, model_params.temperature, model_params.max_tokens, response_format=model_params.response_format)
+            response.metadata.end_time = datetime.datetime.now()
+            response.metadata.total_time_taken = response.metadata.end_time - response.metadata.start_time
+            status = TranlsationStatus.COMPLETED
+            error_message = None
+        except Exception as e:
+            error_message = str(e)
+            response.metadata.end_time = datetime.datetime.now()
+            response.metadata.total_time_taken = response.metadata.end_time - response.metadata.start_time
+            error_message = f"Transaltion failed with error: {error_message}"
+            status = TranlsationStatus.FAILED
+
+
+        
