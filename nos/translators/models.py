@@ -1,10 +1,11 @@
+import time
 import json
 import yaml
 import httpx
 import datetime
 from bson import ObjectId
 from openai import OpenAI, RateLimitError
-from typing import List, Optional, Dict
+from typing import List, Optional, Dict, Union
 from pathlib import Path
 from tenacity import retry, stop_after_attempt, wait_fixed, retry_if_exception, RetryCallState
 
@@ -43,9 +44,7 @@ class Translator:
         self.setup_client()
 
 
-    def switch_providers(self, retry_state: Optional[RetryCallState]=None):
-        if retry_state:
-            logger.info(f"Rate limited for {self.current_provider.name}. Attemp number: {retry_state.attempt_number}. Switching providers")
+    def switch_providers(self):
         self.provider_idx = (self.provider_idx + 1) % len(self.providers)
         self.model_idx = 0
         self.setup_client()
@@ -92,7 +91,7 @@ class Translator:
             if not response_content:
                 raise LLMNoResponseError(self.current_provider, self.model_idx)
             
-            if response_format and response_format.get("type") == "json":
+            if response_format and response_format.get("type") == "json_object":
                 response_content = json.loads(response_content)
             if completion.usage:
                 input_tokens = completion.usage.prompt_tokens
@@ -116,7 +115,7 @@ class Translator:
         raise LLMNoResponseError(self.current_provider, self.model_idx)
 
 
-    def run_translation(self, text: str, prompt_name: str, novel_id: Optional[ObjectId]=None, chapter_id: Optional[ObjectId]=None):
+    def run_translation(self, text: Union[str, List, Dict], prompt_name: str, novel_id: Optional[ObjectId]=None, chapter_id: Optional[ObjectId]=None):
 
         prompt = PromptSchema.load(db, prompt_name)
         if not prompt:
@@ -126,27 +125,29 @@ class Translator:
         user_prompt = prompt.prompt_content.user_prompt
         user_prompt = user_prompt.format(**{"CHINESE_TAGS_JSON_ARRAY": text})
         model_params = prompt.model_parameters
-
-        r = retry(
-            retry=retry_if_exception([RateLimitError, json.JSONDecodeError]), # type: ignore
-            stop=stop_after_attempt(10),
-            wait=wait_fixed(2), # This means wait for 2 seconds before the next attempt
-            before_sleep=lambda retry_state: self.switch_providers(retry_state)
-        )
         status = TranlsationStatus.STARTED
 
-        try:
-            response: LLMCallResponseSchema = r(self.call_provider)(user_prompt, system_prompt, model_params.temperature, model_params.max_tokens, response_format=model_params.response_format)
-            response.end_time = datetime.datetime.now()
-            response.total_time_taken = response.end_time - response.start_time
-            status = TranlsationStatus.COMPLETED
-            error_message = None
-        except Exception as e:
-            error_message = str(e)
-            response.end_time = datetime.datetime.now()
-            response.total_time_taken = response.end_time - response.start_time
-            error_message = f"Transaltion failed with error: {error_message}"
-            status = TranlsationStatus.FAILED
+        n_tries = 0
+        while True:
+            if n_tries > 10:
+                logger.info(f"Failed to get response after {n_tries} tries. Skipping this translation")
+                status = TranlsationStatus.FAILED
+                error_message = f"Failed to get response after {n_tries} tries"
+                break
+            try:
+                logger.debug(f"Calling provider: {self.current_provider.name}, model: {self.current_provider.model_names[self.model_idx]}, attempt: {n_tries}")
+                response: LLMCallResponseSchema = self.call_provider(user_prompt, system_prompt, model_params.temperature, model_params.max_tokens, response_format=model_params.response_format)
+                response.end_time = datetime.datetime.now()
+                response.total_time_taken = (response.end_time - response.start_time).total_seconds() if response.start_time else None
+                status = TranlsationStatus.COMPLETED
+                error_message = None
+                break
+            except RateLimitError as re:
+                n_tries += 1
+                logger.info(f"Rate limited for {self.current_provider.name}. Attempt number: {n_tries}")
+                self.switch_providers()
+                time.sleep(2)
+                continue
 
         translator_metadata = {
             "status": status,
@@ -160,6 +161,6 @@ class Translator:
         }
         # Print the translator metadata
         translator_metadata = TranslatorMetadata(**translator_metadata)
-        logger.debug(f"{translator_metadata.model_dump_json()=}")
+        logger.debug(f"{translator_metadata.model_dump()=}")
         translator_metadata.update(db)
         return translator_metadata

@@ -55,8 +55,7 @@ def beat_update_tags_of_novels():
 
     if len(untranslated_keys) > 0:
         translator = Translator(providers=secrets.providers)
-        untranslated_keys_str = json.dumps(untranslated_keys)
-        response = translator.run_translation(untranslated_keys_str, "tag_translation")
+        response = translator.run_translation(untranslated_keys, "tag_translation")
         
         newly_translated_kv_pairs = response.llm_call_metadata.response_content
         # Log this data
@@ -73,8 +72,7 @@ def beat_update_tags_of_novels():
     } for k, v in untranslated_kv_pairs.items()]
     
     for translation_entity in translation_entities:
-        # translation_entity.update(db=db)
-        pass
+        translation_entity.update(db=db)
         
     logger.debug(f"Updated {len(translation_entities)} translation entities")
 
@@ -89,7 +87,7 @@ def beat_update_tags_of_novels():
             value = all_tags_kv_pairs[k]
             if value is not None:
                 nd.tags.append(value)
-        # nd.update(db=db)
+        nd.update(db=db)
 
     logger.debug(f"Updated {len(novel_data_records)} novels with tags")
     

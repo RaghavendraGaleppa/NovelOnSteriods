@@ -56,6 +56,8 @@ class PromptSchema(DBFuncMixin):
             prompt_record = cls(**prompt)
             if save_to_db:
                 prompt_record.update(db)
+        else:
+            prompt_record = cls.model_validate(prompt_record)
 
         return prompt_record
         

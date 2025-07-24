@@ -1,10 +1,10 @@
 from enum import Enum
 
-class TranlsationStatus(Enum):
+class TranlsationStatus(str, Enum):
     STARTED = "started"
     COMPLETED = "completed"
     FAILED = "failed"
     
 
-class TranslationEntityType(Enum):
+class TranslationEntityType(str, Enum):
     TAGS = "tags"

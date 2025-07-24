@@ -16,11 +16,11 @@ class LLMCallResponseSchema(BaseModel):
     ]
     input_tokens: Optional[int] = Field(default=None, description="The number of tokens used for this translation")
     output_tokens: Optional[int] = Field(default=None, description="The number of tokens used for this translation")
-    remaining_requests: int = Field(description="The number of requests remaining for the current provider")
-    remaining_tokens: int = Field(description="The number of tokens remaining for the current provider")
-    start_time: datetime.datetime = Field(description="The start timestamp of the llm call")
+    remaining_requests: Optional[int] = Field(default=None, description="The number of requests remaining for the current provider")
+    remaining_tokens: Optional[int] = Field(default=None, description="The number of tokens remaining for the current provider")
+    start_time: Optional[datetime.datetime] = Field(default=None, description="The start timestamp of the llm call")
     end_time: Optional[datetime.datetime] = Field(default=None, description="The end timestamp of the llm call")
-    total_time_taken: Optional[datetime.timedelta] = Field(default=None, description="The total time taken for this llm call")
+    total_time_taken: Optional[float] = Field(default=None, description="The total time taken for this llm call in seconds")
 
 class TranslatorMetadata(DBFuncMixin):
 
