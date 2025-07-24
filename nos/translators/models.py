@@ -2,6 +2,7 @@ import json
 import yaml
 import httpx
 import datetime
+from bson import ObjectId
 from openai import OpenAI, RateLimitError
 from typing import List, Optional, Dict
 from pathlib import Path
@@ -10,7 +11,7 @@ from tenacity import retry, stop_after_attempt, wait_exponential, retry_if_excep
 from nos.config import logger, db
 from nos.schemas.secrets_schema import Provider
 from nos.schemas.prompt_schemas import PromptSchema
-from nos.schemas.translator_schemas import LLMCallResponseSchema, LLMCallResponseMetadata, TranlsationStatus
+from nos.schemas.translator_schemas import LLMCallResponseSchema, LLMCallResponseMetadata, TranlsationStatus, TranslatorMetadata
 from nos.exceptions.translator_exceptions import LLMNoResponseError, LLMNoUsageError
 
 
@@ -106,19 +107,17 @@ class Translator:
 
             return LLMCallResponseSchema(
                 response_content=response_content,
-                metadata=LLMCallResponseMetadata(
-                    input_tokens=input_tokens,
-                    output_tokens=output_tokens,
-                    remaining_requests=remaining_req,
-                    remaining_tokens=remaining_tok,
-                    start_time=start_time,
-                )
+                input_tokens=input_tokens,
+                output_tokens=output_tokens,
+                remaining_requests=remaining_req,
+                remaining_tokens=remaining_tok,
+                start_time=start_time,
             )
         
         raise LLMNoResponseError(self.current_provider, self.model_idx)
 
 
-    def run_translation(self, text: str, prompt_name: str):
+    def run_translation(self, text: str, prompt_name: str, novel_id: ObjectId, chapter_id: Optional[ObjectId]=None):
 
         prompt = PromptSchema.load(db, prompt_name)
         if not prompt:
@@ -135,19 +134,31 @@ class Translator:
             wait=wait_exponential(multiplier=1, min=2, max=10),
             before_sleep=lambda retry_state: self.switch_providers(retry_state)
         )
+        status = TranlsationStatus.STARTED
 
         try:
             response: LLMCallResponseSchema = r(self.call_provider)(user_prompt, system_prompt, model_params.temperature, model_params.max_tokens, response_format=model_params.response_format)
-            response.metadata.end_time = datetime.datetime.now()
-            response.metadata.total_time_taken = response.metadata.end_time - response.metadata.start_time
+            response.end_time = datetime.datetime.now()
+            response.total_time_taken = response.end_time - response.start_time
             status = TranlsationStatus.COMPLETED
             error_message = None
         except Exception as e:
             error_message = str(e)
-            response.metadata.end_time = datetime.datetime.now()
-            response.metadata.total_time_taken = response.metadata.end_time - response.metadata.start_time
+            response.end_time = datetime.datetime.now()
+            response.total_time_taken = response.end_time - response.start_time
             error_message = f"Transaltion failed with error: {error_message}"
             status = TranlsationStatus.FAILED
 
-
-        
+        translator_metadata = {
+            "status": status,
+            "error_message": error_message,
+            "novel_id": novel_id,
+            "chapter_id": chapter_id,
+            "provider_name": self.current_provider.name,
+            "model_name": self.current_provider.model_names[self.model_idx],
+            "prompt_id": prompt.id,
+            "llm_call_metadata": response
+        }
+        translator_metadata = TranslatorMetadata(**translator_metadata)
+        translator_metadata.update(db)
+        return translator_metadata
