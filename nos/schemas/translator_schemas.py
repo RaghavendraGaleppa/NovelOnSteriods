@@ -1,15 +1,11 @@
 import datetime
-from enum import Enum
 from bson import ObjectId
 from pydantic import BaseModel, Field
 from typing import Optional, Union, Dict, Annotated
 
 from nos.schemas.mixins import DBFuncMixin
+from nos.schemas.enums import TranlsationStatus
 
-class TranlsationStatus(Enum):
-    STARTED = "started"
-    COMPLETED = "completed"
-    FAILED = "failed"
 
 class LLMCallResponseSchema(BaseModel):
     """ This schema is not supposed to be stored in the database. It is used to store the response from the llm call """

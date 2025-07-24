@@ -61,4 +61,4 @@ class NovelData(NovelRawData):
     author: Optional[str] = Field(default=None, description="This is the translated author of the novel")
     description: Optional[str] = Field(default=None, description="This is the translated description of the novel")
     classification: Optional[str] = Field(default=None, description="This is the translated classification of the novel")
-    tags: Optional[List[str]] = Field(default=None, description="This is the translated tags of the novel")
+    tags: Optional[List[str]] = Field(default=[], description="This is the translated tags of the novel")
