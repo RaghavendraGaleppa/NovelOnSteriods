@@ -1,27 +1,30 @@
-from pymongo.database import Database
 from bson import ObjectId
-from typing import Optional, Union, List, Any, TypeVar, Type
+from pydantic import Field, BaseModel, ConfigDict
+from pymongo.database import Database
+from typing import Optional, Union, List, Any, TypeVar, Type, ClassVar
 
 T = TypeVar("T", bound="DBFuncMixin")
 
 
-class DBFuncMixin:
+class DBFuncMixin(BaseModel):
 
-    class Config:
-        arbitrary_types_allowed = True
+    
+    model_config = ConfigDict(arbitrary_types_allowed=True)
 
-    id: Optional[ObjectId] = None
-    _collection_name: str
+    id: Optional[ObjectId] = Field(default=None, description="The id of the object", alias="_id", exclude=True)
+    _collection_name: ClassVar[str]
 
     def update(self, db: Database):
         # If _id is None, insert it else update it
         collection = db[self._collection_name]
+        data_to_dump = self.model_dump()  
+
         if self.id is None:
-            self.id = collection.insert_one(self.model_dump(exclude={"_id"})).inserted_id # type: ignore
+            self.id = collection.insert_one(data_to_dump).inserted_id # type: ignore
         else:
             collection.update_one(
                 {"_id": self.id},
-                {"$set": self.model_dump(exclude={"_id"})} # type: ignore
+                {"$set": data_to_dump} # type: ignore
         )
             
     def delete(self, db: Database):

@@ -11,7 +11,9 @@ description: >
 # A low temperature is crucial for accuracy and consistency in translation tasks.
 model_parameters:
   temperature: 0.1
-  max_output_tokens: 2048
+  max_tokens: 20000
+  response_format:
+    type: "json_object"
 
 prompt_content:
   system_prompt: |
@@ -25,21 +27,21 @@ prompt_content:
     3.  **Strict Output Format:** Your entire output MUST be a single, valid JSON object. The keys must be the original Chinese tags and the values must be their English translations.
     4.  **No Extra Text:** Do not include any explanations, apologies, or any text whatsoever outside of the final JSON object.
 
-  user_prompt_template: |
+  user_prompt: |
     Based on your instructions, please translate the following list of Chinese webnovel tags.
 
     ### High-Quality Examples ###
     These examples demonstrate the required translation quality and style.
     - Input: ["重生", "金手指", "剑修", "无敌流"]
     - Output:
-      {
+      {{
         "重生": "Rebirth",
         "金手指": "Golden Finger",
         "剑修": "Sword Cultivator",
         "无敌流": "Invincible"
-      }
+      }}
 
     ### Tags to Translate ###
-    {{CHINESE_TAGS_JSON_ARRAY}}
+    {CHINESE_TAGS_JSON_ARRAY}
 
     Provide your response as a single, valid JSON object.

@@ -1,0 +1,1 @@
+# Celery tasks test package 

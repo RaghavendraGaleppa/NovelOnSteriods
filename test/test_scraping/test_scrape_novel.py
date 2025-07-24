@@ -1,4 +1,5 @@
 from logging import Logger
+from bson import ObjectId
 from pymongo.database import Database
 from nos.schemas.scraping_schema import NovelRawData
 from nos.run_spider import run_spider
@@ -25,6 +26,7 @@ def is_url(url: str) -> bool:
 class TestScrape1qxs:
 
     def test_data_type(self, scraped_data: List[NovelRawData]):
+        assert all(isinstance(item.id, ObjectId) for item in scraped_data)
         assert isinstance(scraped_data, list)
         assert all(isinstance(item, NovelRawData) for item in scraped_data)
         assert len(scraped_data) == 5
@@ -60,5 +62,26 @@ class TestScrape1qxs:
             assert item.novel_source_id in item.novel_url
             assert item.novel_source_id in item.chapter_list_url
             assert item.novel_source_id in item.image_url
+            
+    def test_update_the_data(self, scraped_data: List[NovelRawData], db: Database):
+        for item in scraped_data[:2]:
+            item.title_raw = "Test Title"
+            item.description_raw = "Test Description"
+            item.all_data_parsed = True
+            item.update(db)
+            
+
+        # Re-retrive the data
+        data = NovelRawData.load(db=db, query={"source_name": "1qxs", "all_data_parsed": True}, many=True)
+        assert data is not None
+        assert isinstance(data, list)
+        assert len(data) == 2
+        assert all(isinstance(item, NovelRawData) for item in data)
+        assert all(item.title_raw == "Test Title" for item in data)
+        assert all(item.description_raw == "Test Description" for item in data)
+        assert all(item.all_data_parsed is True for item in data)
+
+        # Check if the data is updated in the database
+        
 
 

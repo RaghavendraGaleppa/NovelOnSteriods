@@ -11,6 +11,9 @@ class Provider(BaseModel):
     key: str
     provider: str
     model_names: List[str]
+
+    def __str__(self):
+        return f"Provider: {self.provider}, Name: {self.name}, URL: {self.url}"
     
 
 class Secrets(BaseModel):
