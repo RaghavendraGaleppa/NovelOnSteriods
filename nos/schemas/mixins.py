@@ -11,7 +11,7 @@ class DBFuncMixin:
     class Config:
         arbitrary_types_allowed = True
 
-    id: Optional[ObjectId]
+    id: Optional[ObjectId] = Field(default=None, description="The id of the object", alias="_id")
     _collection_name: ClassVar[str]
 
     def update(self, db: Database):

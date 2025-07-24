@@ -1,4 +1,5 @@
 from logging import Logger
+from bson import ObjectId
 from pymongo.database import Database
 from nos.schemas.scraping_schema import NovelRawData
 from nos.run_spider import run_spider
@@ -25,6 +26,7 @@ def is_url(url: str) -> bool:
 class TestScrape1qxs:
 
     def test_data_type(self, scraped_data: List[NovelRawData]):
+        assert all(isinstance(item.id, ObjectId) for item in scraped_data)
         assert isinstance(scraped_data, list)
         assert all(isinstance(item, NovelRawData) for item in scraped_data)
         assert len(scraped_data) == 5

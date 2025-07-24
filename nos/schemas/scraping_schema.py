@@ -33,7 +33,7 @@ class NovelRawData(BaseModel, DBFuncMixin):
     tags_raw: List[str]
     
     # Metadata
-    all_data_parsed: bool = False  # This will be set to True after the raw data is fully translated
+    all_data_parsed: bool = Field(default=False, description="This will be set to True after the raw data is fully translated")
     fingerprint: str
 
     def update(self, db: Database):
@@ -56,9 +56,9 @@ class NovelRawData(BaseModel, DBFuncMixin):
     
 class NovelData(NovelRawData):
 
-    """ The full data """
-    title: str
-    author: str
-    description: str
-    classification: str
-    tags: List[str]
+    """ The full data. None basically means that they have not been translated into english """
+    title: Optional[str] = Field(default=None, description="This is the translated title of the novel")
+    author: Optional[str] = Field(default=None, description="This is the translated author of the novel")
+    description: Optional[str] = Field(default=None, description="This is the translated description of the novel")
+    classification: Optional[str] = Field(default=None, description="This is the translated classification of the novel")
+    tags: Optional[List[str]] = Field(default=None, description="This is the translated tags of the novel")
