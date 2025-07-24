@@ -82,6 +82,8 @@ class Translator:
         headers = response.headers
         remaining_req = int(headers.get('x-ratelimit-remaining-requests', -1))
         remaining_tok = int(headers.get('x-ratelimit-remaining-tokens', -1))
+        
+        logger.debug(f"Response headers: {headers}")
 
         completion = response.parse() # type: ignore
 
