@@ -1,8 +1,10 @@
 import json
+from pathlib import Path
 from typing import List
 
 from nos.config import celery_app, db, secrets, logger
 from nos.schemas.enums import TranslationEntityType
+from nos.schemas.prompt_schemas import PromptSchema
 from nos.schemas.scraping_schema import NovelData
 from nos.schemas.translation_entities_schema import TranslationEntity
 from nos.translators.models import Translator
@@ -92,3 +94,31 @@ def beat_update_tags_of_novels():
     logger.debug(f"Updated {len(novel_data_records)} novels with tags")
     
     return all_tags_kv_pairs, untranslated_kv_pairs
+
+
+@celery_app.task
+def beat_update_prompts():
+    """ This task will regularly find all the yaml files in the prompts folder, load them in the schema and check if there are fingerprint changes as compared to the db prompts. If there are then, we add the new prompts into the db"""
+
+    prompt_folder = Path(__file__).parent.parent / "prompts"
+    for prompt_file in prompt_folder.glob("*.yaml"):
+        prompt_from_file = PromptSchema.load(db, query={"prompt_name": prompt_file.stem}, load_from_file=True)
+        prompt_from_db = PromptSchema.load(db, query={"prompt_name": prompt_file.stem})
+
+        if prompt_from_file is None:
+            logger.debug(f"Prompt {prompt_file.stem} not found in db")
+            continue
+        if prompt_from_db is None:
+            # Directly save the prompt from file to the db
+            prompt_from_file.update(db=db)
+            logger.debug(f"Prompt {prompt_file.stem} saved to db")
+            continue
+        
+        if prompt_from_file.fingerprint != prompt_from_db.fingerprint:
+            logger.debug(f"Prompt {prompt_file.stem} has changed. Updating db")
+            prompt_from_file.update(db=db)
+            continue
+        
+        logger.debug(f"Prompt {prompt_file.stem} has not changed. Skipping")
+
+

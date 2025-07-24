@@ -4,6 +4,7 @@ from pathlib import Path
 from typing import Optional, TypeVar, Type, Union, List, Dict, Any, ClassVar
 from pymongo.database import Database
 
+from nos.config import logger
 from nos.utils.file_utils import get_file_hash
 
 
@@ -47,7 +48,11 @@ class PromptSchema(DBFuncMixin):
             raise ValueError("Query is required when load_from_file is false")
         if not load_from_file:
             collection = db[cls._collection_name]
-            prompt = collection.find_one(query)
+            try:
+                prompt = collection.find(query).sort("_id", -1).limit(1).next()
+            except StopIteration:
+                logger.debug(f"No prompt found for query {query} in db")
+                return None
         else:
             if "prompt_name" not in query:
                 raise ValueError("prompt_name is required when load_from_file is true")

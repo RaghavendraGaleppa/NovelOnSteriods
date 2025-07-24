@@ -47,6 +47,10 @@ celery_app = Celery(
 celery_app.conf.beat_schedule = {
     "beat-tags-translation-and-update": {
         'task': "nos.celery_tasks.beat_tasks.beat_update_tags_of_novels",
-        'schedule': timedelta(minutes=2),
+        'schedule': timedelta(minutes=1),
+    },
+    "beat-update-prompts": {
+        'task': "nos.celery_tasks.beat_tasks.beat_update_prompts",
+        'schedule': timedelta(minutes=1),
     }
 }
