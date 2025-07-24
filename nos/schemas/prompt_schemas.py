@@ -20,7 +20,7 @@ class PromptContent(BaseModel):
     system_prompt: str
     user_prompt: str
 
-class PromptSchema(BaseModel, DBFuncMixin):
+class PromptSchema(DBFuncMixin):
 
     class Config:
         arbitrary_types_allowed = True

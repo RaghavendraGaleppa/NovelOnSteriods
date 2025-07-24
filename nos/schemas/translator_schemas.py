@@ -12,7 +12,7 @@ class LLMCallResponseSchema(BaseModel):
 
     response_content: Annotated[
         Union[str, Dict],
-        Field(default=None, description="The response content from the llm call", json_schema_extra={"db_ignore": True})
+        Field(default=None, description="The response content from the llm call", exclude=True)
     ]
     input_tokens: Optional[int] = Field(default=None, description="The number of tokens used for this translation")
     output_tokens: Optional[int] = Field(default=None, description="The number of tokens used for this translation")
@@ -22,7 +22,7 @@ class LLMCallResponseSchema(BaseModel):
     end_time: Optional[datetime.datetime] = Field(default=None, description="The end timestamp of the llm call")
     total_time_taken: Optional[datetime.timedelta] = Field(default=None, description="The total time taken for this llm call")
 
-class TranslatorMetadata(BaseModel, DBFuncMixin):
+class TranslatorMetadata(DBFuncMixin):
     class Config:
         arbitrary_types_allowed = True  # This is to ensure ObjectIds work well
 
@@ -31,7 +31,7 @@ class TranslatorMetadata(BaseModel, DBFuncMixin):
     status: TranlsationStatus = Field(default=TranlsationStatus.STARTED, description="The status of the translation")
     error_message: Optional[str] = Field(default=None, description="The error message if the translation failed. It will remain None if the translation is successfull")
 
-    novel_id: ObjectId = Field(description="The id of the novel that is being translated")
+    novel_id: Optional[ObjectId] = Field(default=None, description="The id of the novel that is being translated")
     chapter_id: Optional[ObjectId] = Field(default=None, description="The id of the chapter that is being translated. If the translation is for other things, the novel_id is enough")
 
     provider_name: str = Field(description="The name of the api provider through which this translation is taking place")

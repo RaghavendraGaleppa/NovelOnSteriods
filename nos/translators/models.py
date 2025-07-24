@@ -116,7 +116,7 @@ class Translator:
         raise LLMNoResponseError(self.current_provider, self.model_idx)
 
 
-    def run_translation(self, text: str, prompt_name: str, novel_id: ObjectId, chapter_id: Optional[ObjectId]=None):
+    def run_translation(self, text: str, prompt_name: str, novel_id: Optional[ObjectId]=None, chapter_id: Optional[ObjectId]=None):
 
         prompt = PromptSchema.load(db, prompt_name)
         if not prompt:
@@ -158,6 +158,8 @@ class Translator:
             "prompt_id": prompt.id,
             "llm_call_metadata": response
         }
+        # Print the translator metadata
         translator_metadata = TranslatorMetadata(**translator_metadata)
+        logger.debug(f"{translator_metadata.model_dump_json()=}")
         translator_metadata.update(db)
         return translator_metadata

@@ -8,7 +8,7 @@ from nos.schemas.mixins import DBFuncMixin
 from nos.config import logger
 
 
-class NovelRawData(BaseModel, DBFuncMixin):
+class NovelRawData(DBFuncMixin):
     """
     - This will serve as the base schema for all novels. We will use this to load/dump data from and to the db
     """
