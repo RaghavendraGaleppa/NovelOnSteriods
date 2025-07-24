@@ -7,8 +7,6 @@ from nos.schemas.mixins import DBFuncMixin
 
 class TranslationEntity(DBFuncMixin):
     """ The translation entity is a collection which is basically like a key value store for word/words that occur very commonly withing the novel or its description. An example of this is the tags of the novel."""
-    class Config:
-        arbitrary_types_allowed = True
 
     _collection_name: ClassVar[str] = "translation_entities"
 

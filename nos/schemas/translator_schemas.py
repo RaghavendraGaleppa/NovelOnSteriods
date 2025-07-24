@@ -23,8 +23,6 @@ class LLMCallResponseSchema(BaseModel):
     total_time_taken: Optional[datetime.timedelta] = Field(default=None, description="The total time taken for this llm call")
 
 class TranslatorMetadata(DBFuncMixin):
-    class Config:
-        arbitrary_types_allowed = True  # This is to ensure ObjectIds work well
 
     _collection_name: str = "translator_metadata"
     

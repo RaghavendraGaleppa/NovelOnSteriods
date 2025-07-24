@@ -1,5 +1,5 @@
 from bson import ObjectId
-from pydantic import Field, BaseModel
+from pydantic import Field, BaseModel, ConfigDict
 from pymongo.database import Database
 from typing import Optional, Union, List, Any, TypeVar, Type, ClassVar
 
@@ -8,8 +8,8 @@ T = TypeVar("T", bound="DBFuncMixin")
 
 class DBFuncMixin(BaseModel):
 
-    class Config:
-        arbitrary_types_allowed = True
+    
+    model_config = ConfigDict(arbitrary_types_allowed=True)
 
     id: Optional[ObjectId] = Field(default=None, description="The id of the object", alias="_id", exclude=True)
     _collection_name: ClassVar[str]

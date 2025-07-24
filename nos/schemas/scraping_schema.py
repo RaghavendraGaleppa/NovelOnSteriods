@@ -12,8 +12,6 @@ class NovelRawData(DBFuncMixin):
     """
     - This will serve as the base schema for all novels. We will use this to load/dump data from and to the db
     """
-    class Config:
-        arbitrary_types_allowed = True  # This is to ensure ObjectIds work well
 
     # DB related fields
     _collection_name: ClassVar[str] = "novels" 

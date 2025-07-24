@@ -22,8 +22,6 @@ class PromptContent(BaseModel):
 
 class PromptSchema(DBFuncMixin):
 
-    class Config:
-        arbitrary_types_allowed = True
 
     _collection_name: ClassVar[str] = "prompts"
 
