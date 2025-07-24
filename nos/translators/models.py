@@ -6,7 +6,7 @@ from bson import ObjectId
 from openai import OpenAI, RateLimitError
 from typing import List, Optional, Dict
 from pathlib import Path
-from tenacity import retry, stop_after_attempt, wait_exponential, retry_if_exception, RetryCallState
+from tenacity import retry, stop_after_attempt, wait_fixed, retry_if_exception, RetryCallState
 
 from nos.config import logger, db
 from nos.schemas.secrets_schema import Provider
@@ -131,7 +131,7 @@ class Translator:
         r = retry(
             retry=retry_if_exception([RateLimitError, json.JSONDecodeError]), # type: ignore
             stop=stop_after_attempt(10),
-            wait=wait_exponential(multiplier=1, min=2, max=10),
+            wait=wait_fixed(2), # This means wait for 2 seconds before the next attempt
             before_sleep=lambda retry_state: self.switch_providers(retry_state)
         )
         status = TranlsationStatus.STARTED
