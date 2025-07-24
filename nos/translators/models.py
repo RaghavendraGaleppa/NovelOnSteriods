@@ -119,7 +119,7 @@ class Translator:
 
     def run_translation(self, text: Union[str, List, Dict], prompt_name: str, novel_id: Optional[ObjectId]=None, chapter_id: Optional[ObjectId]=None):
 
-        prompt = PromptSchema.load(db, prompt_name)
+        prompt = PromptSchema.load(db, query={"prompt_name": prompt_name})
         if not prompt:
             raise ValueError(f"Prompt {prompt_name} not found")
 

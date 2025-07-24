@@ -38,29 +38,27 @@ class PromptSchema(DBFuncMixin):
     fingerprint: str
 
     @classmethod
-    def load(cls: Type[T], db: Database, prompt_name: str, prompt_version: Optional[str]=None, load_from_file: bool=False) -> Optional[T]:
+    def load(cls: Type[T], db: Database, query: Optional[Dict[str, Any]]=None, load_from_file: bool=False) -> Optional[T]:
         """ 
-            The goal is to first check if the db has any prompt with the prompt_name and version. If it does then load it. Otherwise. Load the prompt from the yaml file. Save that to the db and then return the loaded prompt
+        - If load from file is true then the query must only contain the prompt_name
         """
 
+        if query is None:
+            raise ValueError("Query is required when load_from_file is false")
         if not load_from_file:
-            query = {"prompt_name": prompt_name}
-            if prompt_version is not None:
-                query["prompt_version"] = prompt_version
-
             collection = db[cls._collection_name]
             prompt = collection.find_one(query)
         else:
-            if prompt_version is not None:
-                raise ValueError(f"Prompt {prompt_name} with version {prompt_version} does not exist in db")
+            if "prompt_name" not in query:
+                raise ValueError("prompt_name is required when load_from_file is true")
 
-            prompt_path = Path(__file__).parent.parent / "prompts" / f"{prompt_name}.yaml"
+            prompt_path = Path(__file__).parent.parent / "prompts" / f"{query['prompt_name']}.yaml"
             with open(prompt_path, "r") as f:
                 prompt = yaml.safe_load(f)
                 prompt["fingerprint"] = get_file_hash(prompt_path)
                 
         if not prompt or not isinstance(prompt, dict):
-            raise ValueError(f"Prompt {prompt_name} with version {prompt_version} does not exist in db or file")
+            raise ValueError(f"Prompt with query {query} does not exist in db or file")
 
         prompt_record = cls(**prompt)
         return prompt_record

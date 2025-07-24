@@ -17,7 +17,7 @@ def beat_update_tags_of_novels():
     novel_data_records: List[NovelData] = NovelData.load(
         db=db,
         query={
-            "tags_raw": {"$exists": True},
+            "tags_raw": {"$exists": True, "$ne": []},
             "$or": [
                 {"tags": {"$exists": False}},  # Field doesn't exist
                 {"tags": {"$in": [None, []]}}  # Field is None or empty list
