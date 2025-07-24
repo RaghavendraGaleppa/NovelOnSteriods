@@ -11,7 +11,7 @@ from tenacity import retry, stop_after_attempt, wait_exponential, retry_if_excep
 from nos.config import logger, db
 from nos.schemas.secrets_schema import Provider
 from nos.schemas.prompt_schemas import PromptSchema
-from nos.schemas.translator_schemas import LLMCallResponseSchema, LLMCallResponseMetadata, TranlsationStatus, TranslatorMetadata
+from nos.schemas.translator_schemas import LLMCallResponseSchema, TranlsationStatus, TranslatorMetadata
 from nos.exceptions.translator_exceptions import LLMNoResponseError, LLMNoUsageError
 
 
