@@ -4,7 +4,7 @@ from typing import Optional
 from pydantic import BaseModel, Field
 from enum import Enum
 
-from mixins import DBFuncMixin
+from nos.schemas.mixins import DBFuncMixin
 
 class TranlsationStatus(Enum):
     STARTED = "started"

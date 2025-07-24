@@ -48,8 +48,8 @@ class Translator:
         )
 
         headers = response.headers
-        remaining_req = headers.get('x-ratelimit-remaining-requests')
-        remaining_tok = headers.get('x-ratelimit-remaining-tokens')
+        remaining_req = int(headers.get('x-ratelimit-remaining-requests', -1))
+        remaining_tok = int(headers.get('x-ratelimit-remaining-tokens', -1))
 
         completion = response.parse() # type: ignore
 
