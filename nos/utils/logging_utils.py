@@ -20,4 +20,5 @@ def get_logger(name: str=os.environ["MAIN_LOGGER_NAME"], level: int=DEBUG) -> lo
         handler = StreamHandler()
         handler.setFormatter(Formatter(logger_format_str))
         logger.addHandler(handler)
+    logger.propagate = False
     return logger

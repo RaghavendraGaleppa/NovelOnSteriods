@@ -10,6 +10,8 @@ from nos.schemas.translation_entities_schema import TranslationEntity
 from nos.translators.models import Translator
 
 
+
+
 @celery_app.task
 def beat_update_tags_of_novels():
     """ This is a beat task that is supposed to run periodically and update the tags for novels."""
@@ -102,6 +104,7 @@ def beat_update_prompts():
 
     prompt_folder = Path(__file__).parent.parent / "prompts"
     for prompt_file in prompt_folder.glob("*.yaml"):
+        logger.debug(f"Checking prompt {prompt_file.stem}")
         prompt_from_file = PromptSchema.load(db, query={"prompt_name": prompt_file.stem}, load_from_file=True)
         prompt_from_db = PromptSchema.load(db, query={"prompt_name": prompt_file.stem})
 
