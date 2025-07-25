@@ -5,18 +5,12 @@ from dotenv import load_dotenv
 from datetime import timedelta
 
 # Project imports
-from nos.schemas.secrets_schema import Secrets
+from nos.schemas.secrets_schema import Provider
 from nos.schemas.config_schemas import DBConfigSchema
 from nos.utils.logging_utils import get_logger
 from nos.utils.db_utils import get_db_client
 
-secrets_json_path = os.environ.get("SECRETS_JSON_PATH", "secrets.json")
-print(f"Loading secrets from {secrets_json_path}")
 
-with open(secrets_json_path, "r") as f:
-    secrets_dict = json.load(f)
-
-secrets = Secrets(**secrets_dict)
 logger = get_logger("main")
 
 logger.info("Starting the main script")
@@ -51,6 +45,10 @@ celery_app.conf.beat_schedule = {
     },
     "beat-update-prompts": {
         'task': "nos.celery_tasks.beat_tasks.beat_update_prompts",
+        'schedule': timedelta(minutes=1),
+    },
+    "beat-update-providers": {
+        'task': "nos.celery_tasks.beat_tasks.beat_update_providers",
         'schedule': timedelta(minutes=1),
     }
 }

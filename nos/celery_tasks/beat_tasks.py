@@ -1,15 +1,14 @@
 import json
 from pathlib import Path
-from typing import List
+from typing import List, Optional
 
-from nos.config import celery_app, db, secrets, logger
+from nos.config import celery_app, db, logger
 from nos.schemas.enums import TranslationEntityType
 from nos.schemas.prompt_schemas import PromptSchema
+from nos.schemas.secrets_schema import Provider
 from nos.schemas.scraping_schema import NovelData
 from nos.schemas.translation_entities_schema import TranslationEntity
 from nos.translators.models import Translator
-
-
 
 
 @celery_app.task
@@ -125,3 +124,26 @@ def beat_update_prompts():
         logger.debug(f"Prompt {prompt_file.stem} has not changed. Skipping")
 
 
+
+@celery_app.task
+def beat_update_providers():
+    """ This task will regularly update the providers in the db"""
+    secrets_path = Path("secrets.json")
+    # Load the secrets
+    with open(secrets_path, "r") as f:
+        secrets_json = json.load(f)
+    providers = Provider.load_from_secrets_json(secrets_json)
+    logger.debug(f"Found {len(providers)} providers")
+    # Check if the providers exist in the db
+    for provider in providers:
+        provider_from_db: Optional[Provider] = Provider.load(db, query={"key": provider.key}, many=False) # type: ignore
+        if provider_from_db is None:
+            provider.update(db=db)
+            logger.debug(f"Provider {provider.name} saved to db")
+        else:
+            # Copy over the values from json to db and update the db
+            provider_from_db.model_names = provider.model_names
+            provider_from_db.name = provider.name
+            provider_from_db.priority = provider.priority
+            provider_from_db.update(db=db)
+            logger.debug(f"Provider {provider.name} updated in db")
