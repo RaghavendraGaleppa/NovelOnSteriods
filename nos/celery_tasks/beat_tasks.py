@@ -1,8 +1,11 @@
 import json
-from typing import List
+from pathlib import Path
+from typing import List, Optional
 
-from nos.config import celery_app, db, secrets, logger
+from nos.config import celery_app, db, logger
 from nos.schemas.enums import TranslationEntityType
+from nos.schemas.prompt_schemas import PromptSchema
+from nos.schemas.secrets_schema import Provider
 from nos.schemas.scraping_schema import NovelData
 from nos.schemas.translation_entities_schema import TranslationEntity
 from nos.translators.models import Translator
@@ -17,7 +20,7 @@ def beat_update_tags_of_novels():
     novel_data_records: List[NovelData] = NovelData.load(
         db=db,
         query={
-            "tags_raw": {"$exists": True},
+            "tags_raw": {"$exists": True, "$ne": []},
             "$or": [
                 {"tags": {"$exists": False}},  # Field doesn't exist
                 {"tags": {"$in": [None, []]}}  # Field is None or empty list
@@ -92,3 +95,55 @@ def beat_update_tags_of_novels():
     logger.debug(f"Updated {len(novel_data_records)} novels with tags")
     
     return all_tags_kv_pairs, untranslated_kv_pairs
+
+
+@celery_app.task
+def beat_update_prompts():
+    """ This task will regularly find all the yaml files in the prompts folder, load them in the schema and check if there are fingerprint changes as compared to the db prompts. If there are then, we add the new prompts into the db"""
+
+    prompt_folder = Path(__file__).parent.parent / "prompts"
+    for prompt_file in prompt_folder.glob("*.yaml"):
+        logger.debug(f"Checking prompt {prompt_file.stem}")
+        prompt_from_file = PromptSchema.load(db, query={"prompt_name": prompt_file.stem}, load_from_file=True)
+        prompt_from_db = PromptSchema.load(db, query={"prompt_name": prompt_file.stem})
+
+        if prompt_from_file is None:
+            logger.debug(f"Prompt {prompt_file.stem} not found in db")
+            continue
+        if prompt_from_db is None:
+            # Directly save the prompt from file to the db
+            prompt_from_file.update(db=db)
+            logger.debug(f"Prompt {prompt_file.stem} saved to db")
+            continue
+        
+        if prompt_from_file.fingerprint != prompt_from_db.fingerprint:
+            logger.debug(f"Prompt {prompt_file.stem} has changed. Updating db")
+            prompt_from_file.update(db=db)
+            continue
+        
+        logger.debug(f"Prompt {prompt_file.stem} has not changed. Skipping")
+
+
+
+@celery_app.task
+def beat_update_providers():
+    """ This task will regularly update the providers in the db"""
+    secrets_path = Path("secrets.json")
+    # Load the secrets
+    with open(secrets_path, "r") as f:
+        secrets_json = json.load(f)
+    providers = Provider.load_from_secrets_json(secrets_json)
+    logger.debug(f"Found {len(providers)} providers")
+    # Check if the providers exist in the db
+    for provider in providers:
+        provider_from_db: Optional[Provider] = Provider.load(db, query={"key": provider.key}, many=False) # type: ignore
+        if provider_from_db is None:
+            provider.update(db=db)
+            logger.debug(f"Provider {provider.name} saved to db")
+        else:
+            # Copy over the values from json to db and update the db
+            provider_from_db.model_names = provider.model_names
+            provider_from_db.name = provider.name
+            provider_from_db.priority = provider.priority
+            provider_from_db.update(db=db)
+            logger.debug(f"Provider {provider.name} updated in db")
