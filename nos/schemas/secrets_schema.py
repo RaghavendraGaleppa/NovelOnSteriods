@@ -47,6 +47,7 @@ class Provider(DBFuncMixin):
                 key=provider["key"],
                 provider=provider["provider"],
                 model_names=provider["model_names"],
+                priority=provider["priority"],
             )
             providers.append(provider_obj)
 
