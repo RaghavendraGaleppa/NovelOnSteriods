@@ -20,3 +20,14 @@ class LLMNoUsageError(Exception):
 
     def __str__(self):
         return self.error_message
+
+
+class NoProvidersAvailable(Exception):
+    """
+    This exception is raised when there are no providers available to switch to
+    """
+    def __init__(self):
+        self.error_message = "No providers available to switch to"
+
+    def __str__(self):
+        return self.error_message

@@ -14,7 +14,7 @@ from nos.schemas.secrets_schema import Provider
 from nos.schemas.prompt_schemas import PromptSchema
 from nos.schemas.translator_schemas import LLMCallResponseSchema, TranslatorMetadata
 from nos.schemas.enums import TranlsationStatus
-from nos.exceptions.translator_exceptions import LLMNoResponseError, LLMNoUsageError
+from nos.exceptions.translator_exceptions import LLMNoResponseError, LLMNoUsageError, NoProvidersAvailable
 
 
 def mock_rate_limit():
@@ -38,21 +38,40 @@ class Translator:
 
     def __init__(self, providers: List[Provider]):
         """ Setup the translator """
-        self.providers = providers
-        self.provider_idx = 0  # We'll start from the beginning
-        self.model_idx = 0 # First model in the list
+        self.switch_providers()
         self.setup_client()
 
 
     def switch_providers(self):
-        self.provider_idx = (self.provider_idx + 1) % len(self.providers)
-        self.model_idx = 0
-        self.setup_client()
+        """
+        1. Load all the providers whose rate_limit_info.rate_limit_reset_time is in the past
+        2. These providers must be sorted by priority high to low
+        3. If there are no providers to switch to, raise an error
+        4. Set the current provider to the first provider in the list
+        5. Setup the client for the new provider
+        6. Return the new provider
+        """
+        # Load all the providers fromt the db
+        providers: List[Provider] = Provider.load(db, query={"rate_limit_info.rate_limit_reset_time": {"$lt": datetime.datetime.now()}}, many=True) # type: ignore
+        if not providers:
+            raise NoProvidersAvailable()
+        
+        logger.debug(f"Found {len(providers)} providers to switch to")
+        # Sort the providers by priority high to low
+        providers.sort(key=lambda x: x.priority, reverse=True)
+        
+        # Set the current provider to the first provider in the list
+        self.current_provider = providers[0]
+        self.setup_client(self.current_provider)
+        
+        # Return the new provider
+        return self.current_provider
+        
     
     def setup_client(self, provider: Optional[Provider]=None):
         """ Use the internal provider_idx if the provider arg is None"""
         if provider is None:
-            provider = self.providers[self.provider_idx]
+            provider = self.current_provider
 
         self.client = OpenAI(base_url=provider.url, api_key=provider.key)
         self.current_provider = provider
