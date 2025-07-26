@@ -16,8 +16,11 @@ def check_active_celery_workers():
         logger.info("No active queues")
         return False
     
+
+    logger.info(f"Active queues: {active_queues}")
+    
     for queue in active_queues:
-        if queue["name"] == "translations":
+        if active_queues[queue]['name'] == "translations":
             return True
     
     return False
