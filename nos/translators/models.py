@@ -89,7 +89,6 @@ class Translator:
             messages.append({"role": "system", "content": system_prompt})
         messages.append({"role": "user", "content": user_prompt})
 
-        start_time = datetime.datetime.now()
         response = self.client.chat.completions.with_raw_response.create(
             model=model_name,
             messages=messages,
@@ -130,7 +129,6 @@ class Translator:
                 output_tokens=output_tokens,
                 remaining_requests=remaining_req,
                 remaining_tokens=remaining_tok,
-                start_time=start_time,
             )
         
         raise LLMNoResponseError(self.current_provider, self.model_idx)
@@ -149,8 +147,10 @@ class Translator:
         status = TranlsationStatus.STARTED
 
         logger.debug(f"Calling provider: {self.current_provider.name}, model: {self.current_provider.model_names[self.model_idx]}")
+        start_time = datetime.datetime.now()
         try:
             response: LLMCallResponseSchema = self.call_provider(user_prompt, system_prompt, model_params.temperature, model_params.max_tokens, response_format=model_params.response_format)
+            response.start_time = start_time
             response.end_time = datetime.datetime.now()
             response.total_time_taken = (response.end_time - response.start_time).total_seconds() if response.start_time else None
             status = TranlsationStatus.COMPLETED
@@ -160,7 +160,7 @@ class Translator:
             # Set the status to failed
             status = TranlsationStatus.FAILED
             error_message = f"No providers available to switch to"
-            response = LLMCallResponseSchema(**{})
+            response = LLMCallResponseSchema(**{"start_time": start_time, "end_time": datetime.datetime.now(), "total_time_taken": (datetime.datetime.now() - start_time).total_seconds()})
 
         translator_metadata = {
             "status": status,
