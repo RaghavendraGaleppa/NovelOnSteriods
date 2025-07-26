@@ -53,7 +53,7 @@ class Translator:
         """
         # Load all the providers fromt the db
         logger.debug(f"Switching providers")
-        providers: List[Provider] = Provider.load(db, query={"rate_limit_info.rate_limit_reset_time": {"$lt": datetime.datetime.now()}}, many=True) # type: ignore
+        providers: List[Provider] = Provider.load(db, query={"rate_limit_info.rate_limit_reset_time": {"$gte": datetime.datetime.now()}}, many=True) # type: ignore
         if not providers:
             raise NoProvidersAvailable()
         
@@ -67,6 +67,23 @@ class Translator:
         
         # Return the new provider
         return self.current_provider
+    
+
+    def mark_current_provider_as_exhausted(self):
+        logger.debug(f"Marking current provider as exhausted: {self.current_provider.model_dump()=}")
+        self.current_provider.rate_limit_info.rate_limit_reset_time = datetime.datetime.now() + datetime.timedelta(days=1)
+        self.current_provider.rate_limit_info.n_requests_made_since_last_reset = 0
+        self.current_provider.rate_limit_info.is_rate_limited = True
+        self.current_provider.update(db)
+        
+
+    def mark_current_provider_use(self):
+        self.current_provider.rate_limit_info.n_requests_made += 1
+        self.current_provider.rate_limit_info.n_requests_made_since_last_reset += 1
+        self.current_provider.rate_limit_info.is_rate_limited = False
+        self.current_provider.rate_limit_info.last_request_time = datetime.datetime.now()
+        self.current_provider.update(db)
+        pass
         
     
     @backoff.on_exception(
@@ -103,7 +120,7 @@ class Translator:
             max_tokens=max_tokens,
             response_format=response_format # type: ignore
         )
-
+        self.mark_current_provider_use()
         headers = response.headers
         remaining_req = int(headers.get('x-ratelimit-remaining-requests', -1))
         remaining_tok = int(headers.get('x-ratelimit-remaining-tokens', -1))
