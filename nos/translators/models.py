@@ -148,27 +148,19 @@ class Translator:
         model_params = prompt.model_parameters
         status = TranlsationStatus.STARTED
 
-        n_tries = 0
-        while True:
-            if n_tries > 10:
-                logger.info(f"Failed to get response after {n_tries} tries. Skipping this translation")
-                status = TranlsationStatus.FAILED
-                error_message = f"Failed to get response after {n_tries} tries"
-                break
-            try:
-                logger.debug(f"Calling provider: {self.current_provider.name}, model: {self.current_provider.model_names[self.model_idx]}, attempt: {n_tries}")
-                response: LLMCallResponseSchema = self.call_provider(user_prompt, system_prompt, model_params.temperature, model_params.max_tokens, response_format=model_params.response_format)
-                response.end_time = datetime.datetime.now()
-                response.total_time_taken = (response.end_time - response.start_time).total_seconds() if response.start_time else None
-                status = TranlsationStatus.COMPLETED
-                error_message = None
-                break
-            except RateLimitError as re:
-                n_tries += 1
-                logger.info(f"Rate limited for {self.current_provider.name}. Attempt number: {n_tries}")
-                self.switch_providers()
-                time.sleep(2)
-                continue
+        logger.debug(f"Calling provider: {self.current_provider.name}, model: {self.current_provider.model_names[self.model_idx]}")
+        try:
+            response: LLMCallResponseSchema = self.call_provider(user_prompt, system_prompt, model_params.temperature, model_params.max_tokens, response_format=model_params.response_format)
+            response.end_time = datetime.datetime.now()
+            response.total_time_taken = (response.end_time - response.start_time).total_seconds() if response.start_time else None
+            status = TranlsationStatus.COMPLETED
+            error_message = None
+        except NoProvidersAvailable as re:
+            logger.info(f"No providers available to switch to")
+            # Set the status to failed
+            status = TranlsationStatus.FAILED
+            error_message = f"No providers available to switch to"
+            response = LLMCallResponseSchema(**{})
 
         translator_metadata = {
             "status": status,
