@@ -57,7 +57,7 @@ def beat_update_tags_of_novels():
     untranslated_kv_pairs = {k: None for k in untranslated_keys}
 
     if len(untranslated_keys) > 0:
-        translator = Translator(providers=secrets.providers)
+        translator = Translator()
         response = translator.run_translation(untranslated_keys, "tag_translation")
         
         newly_translated_kv_pairs = response.llm_call_metadata.response_content

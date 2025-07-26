@@ -41,13 +41,7 @@ class Provider(DBFuncMixin):
     def load_from_secrets_json(cls: Type[T], secrets_json: dict) -> List[T]:
         providers = []
         for provider in secrets_json["providers"]:
-            provider_obj = cls(
-                url=provider["url"],
-                name=provider["name"],
-                key=provider["key"],
-                provider=provider["provider"],
-                model_names=provider["model_names"],
-            )
+            provider_obj = cls(**provider)
             providers.append(provider_obj)
 
         return providers
