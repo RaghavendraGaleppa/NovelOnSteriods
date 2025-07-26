@@ -3,11 +3,11 @@ import json
 import yaml
 import httpx
 import datetime
+import backoff
 from bson import ObjectId
 from openai import OpenAI, RateLimitError
 from typing import List, Optional, Dict, Union
 from pathlib import Path
-from tenacity import retry, stop_after_attempt, wait_fixed, retry_if_exception, RetryCallState
 
 from nos.config import logger, db
 from nos.schemas.secrets_schema import Provider
@@ -52,6 +52,7 @@ class Translator:
         6. Return the new provider
         """
         # Load all the providers fromt the db
+        logger.debug(f"Switching providers")
         providers: List[Provider] = Provider.load(db, query={"rate_limit_info.rate_limit_reset_time": {"$lt": datetime.datetime.now()}}, many=True) # type: ignore
         if not providers:
             raise NoProvidersAvailable()
@@ -68,6 +69,12 @@ class Translator:
         return self.current_provider
         
     
+    @backoff.on_exception(
+            backoff.constant,
+            RateLimitError,
+            interval=2,
+            on_backoff=lambda details: details['args'][0].switch_providers()
+    )
     def setup_client(self, provider: Optional[Provider]=None):
         """ Use the internal provider_idx if the provider arg is None"""
         if provider is None:
@@ -150,9 +157,6 @@ class Translator:
         start_time = datetime.datetime.now()
         try:
             response: LLMCallResponseSchema = self.call_provider(user_prompt, system_prompt, model_params.temperature, model_params.max_tokens, response_format=model_params.response_format)
-            response.start_time = start_time
-            response.end_time = datetime.datetime.now()
-            response.total_time_taken = (response.end_time - response.start_time).total_seconds() if response.start_time else None
             status = TranlsationStatus.COMPLETED
             error_message = None
         except NoProvidersAvailable as re:
@@ -161,6 +165,10 @@ class Translator:
             status = TranlsationStatus.FAILED
             error_message = f"No providers available to switch to"
             response = LLMCallResponseSchema(**{"start_time": start_time, "end_time": datetime.datetime.now(), "total_time_taken": (datetime.datetime.now() - start_time).total_seconds()})
+        finally:
+            response.start_time = start_time
+            response.end_time = datetime.datetime.now()
+            response.total_time_taken = (response.end_time - response.start_time).total_seconds() 
 
         translator_metadata = {
             "status": status,
