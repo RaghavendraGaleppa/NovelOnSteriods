@@ -104,4 +104,4 @@ prompt_content:
     ### Data to Process ###
 
     **Input:**
-    {RAW_NOVEL_DATA_JSON}
+    {INPUT_DATA}

@@ -42,6 +42,6 @@ prompt_content:
       }}
 
     ### Tags to Translate ###
-    {CHINESE_TAGS_JSON_ARRAY}
+    {INPUT_DATA}
 
     Provide your response as a single, valid JSON object.

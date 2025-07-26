@@ -169,7 +169,7 @@ class Translator:
 
         system_prompt = prompt.prompt_content.system_prompt
         user_prompt = prompt.prompt_content.user_prompt
-        user_prompt = user_prompt.format(**{"CHINESE_TAGS_JSON_ARRAY": text})
+        user_prompt = user_prompt.format(**{"INPUT_DATA": text})
         model_params = prompt.model_parameters
         status = TranlsationStatus.STARTED
 
