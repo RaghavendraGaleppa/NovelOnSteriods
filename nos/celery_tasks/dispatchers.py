@@ -13,6 +13,7 @@ def dispatch_novel_metadata_translation():
     """ This is beat task that is supposed to run every 5 mins """
     
     query = {
+        "all_data_parsed": False,
         "dispatched_at": {
             "$or": [
                 {"$exists": False},
