@@ -169,7 +169,8 @@ class Translator:
 
         system_prompt = prompt.prompt_content.system_prompt
         user_prompt = prompt.prompt_content.user_prompt
-        user_prompt = user_prompt.format(**{"INPUT_DATA": text})
+        text = json.dumps(text) if not isinstance(text, str) else text
+        user_prompt = user_prompt + "\n\n" + text
         model_params = prompt.model_parameters
         status = TranlsationStatus.STARTED
 

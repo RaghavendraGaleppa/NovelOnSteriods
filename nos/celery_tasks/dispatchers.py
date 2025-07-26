@@ -14,12 +14,10 @@ def dispatch_novel_metadata_translation():
     
     query = {
         "all_data_parsed": False,
-        "dispatched_at": {
-            "$or": [
-                {"$exists": False},
-                {"$lt": datetime.datetime.now() - datetime.timedelta(hours=1)}
-            ]
-        }
+        "$or": [
+            {"dispatched_at": {"$exists": False}},
+            {"dispatched_at": {"$lt": datetime.datetime.now() - datetime.timedelta(hours=1)}}
+        ]
     }
 
     novels: Optional[List[NovelData]] = NovelData.load(db=db, query=query, many=True, limit=3) # type: ignore
