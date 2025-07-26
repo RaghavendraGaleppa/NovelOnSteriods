@@ -53,7 +53,7 @@ class Translator:
         """
         # Load all the providers fromt the db
         logger.debug(f"Switching providers")
-        providers: List[Provider] = Provider.load(db, query={"rate_limit_info.rate_limit_reset_time": {"$gte": datetime.datetime.now()}}, many=True) # type: ignore
+        providers: List[Provider] = Provider.load(db, query={"rate_limit_info.rate_limit_reset_time": {"$lt": datetime.datetime.now()}}, many=True) # type: ignore
         if not providers:
             raise NoProvidersAvailable()
         
