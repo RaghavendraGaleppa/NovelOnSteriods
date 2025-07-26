@@ -60,3 +60,7 @@ class NovelData(NovelRawData):
     description: Optional[str] = Field(default=None, description="This is the translated description of the novel")
     classification: Optional[str] = Field(default=None, description="This is the translated classification of the novel")
     tags: Optional[List[str]] = Field(default=[], description="This is the translated tags of the novel")
+    
+
+    # Some tags for dispatchers
+    dispatched_at: Optional[datetime] = Field(default=None, description='When a dispatcher picks up this novel and dispatches it for translation')
