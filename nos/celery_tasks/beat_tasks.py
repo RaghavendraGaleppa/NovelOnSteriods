@@ -57,7 +57,12 @@ def beat_update_tags_of_novels():
     untranslated_kv_pairs = {k: None for k in untranslated_keys}
 
     if len(untranslated_keys) > 0:
-        translator = Translator(providers=secrets.providers)
+        # Load providers from database
+        providers: List[Provider] = Provider.load(db=db, query={}, many=True) # type: ignore
+        if not providers:
+            raise ValueError("No providers found in database. Please run beat_update_providers first.")
+        
+        translator = Translator(providers=providers)
         response = translator.run_translation(untranslated_keys, "tag_translation")
         
         newly_translated_kv_pairs = response.llm_call_metadata.response_content
