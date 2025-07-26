@@ -8,9 +8,28 @@ from nos.celery_tasks.tasks import translate_novel_metadata
 from nos.schemas.scraping_schema import NovelData
 
 
+
+def check_active_celery_workers():
+    inspect = celery_app.control.inspect()
+    active_queues = inspect.active_queues()
+    if active_queues is None:
+        logger.info("No active queues")
+        return False
+    
+    for queue in active_queues:
+        if queue["name"] == "translations":
+            return True
+    
+    return False
+
+
 @celery_app.task
 def dispatch_novel_metadata_translation():
     """ This is beat task that is supposed to run every 5 mins """
+
+    if not check_active_celery_workers():
+        logger.info("No active celery workers. Skipping dispatch")
+        return
     
     query = {
         "all_data_parsed": False,
