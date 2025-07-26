@@ -7,7 +7,7 @@ from nos.schemas.scraping_schema import NovelData
 from nos.translators.models import Translator
 
 
-@celery_app.task
+@celery_app.task(queue="translations")
 def translate_novel_metadata(novel_id: str):
     """
     Basically translate the metadata of the novel 
