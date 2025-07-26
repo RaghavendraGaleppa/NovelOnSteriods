@@ -42,7 +42,7 @@ class Translator:
         self.setup_client()
 
 
-    def switch_providers(self):
+    def switch_providers(self, mark_current_provider_as_exhausted: bool=False):
         """
         1. Load all the providers whose rate_limit_info.rate_limit_reset_time is in the past
         2. These providers must be sorted by priority high to low
@@ -51,6 +51,10 @@ class Translator:
         5. Setup the client for the new provider
         6. Return the new provider
         """
+        # Mark the current provider as exhausted
+        if hasattr(self, "current_provider") and mark_current_provider_as_exhausted is True:
+            self.mark_current_provider_as_exhausted()
+
         # Load all the providers fromt the db
         logger.debug(f"Switching providers")
         providers: List[Provider] = Provider.load(db, query={"rate_limit_info.rate_limit_reset_time": {"$lt": datetime.datetime.now()}}, many=True) # type: ignore
@@ -86,12 +90,6 @@ class Translator:
         pass
         
     
-    @backoff.on_exception(
-            backoff.constant,
-            RateLimitError,
-            interval=2,
-            on_backoff=lambda details: details['args'][0].switch_providers()
-    )
     def setup_client(self, provider: Optional[Provider]=None):
         """ Use the internal provider_idx if the provider arg is None"""
         if provider is None:
@@ -102,7 +100,12 @@ class Translator:
         self.model_idx = 0
         logger.info(f"Done Setting up client for provider: {provider.provider}, name: {provider.name}")
 
-    
+    @backoff.on_exception(
+            backoff.constant,
+            RateLimitError,
+            interval=2,
+            on_backoff=lambda details: details['args'][0].switch_providers(mark_current_provider_as_exhausted=True)
+    )
     def call_provider(self, user_prompt: str, system_prompt: Optional[str]=None, temperature: float=0.1, max_tokens: int=2048, response_format: Optional[Dict]=None, raise_usage_error: bool=True):
         """ Send the text to llm and return response """
         model_name = self.current_provider.model_names[self.model_idx]
@@ -172,6 +175,7 @@ class Translator:
 
         logger.debug(f"Calling provider: {self.current_provider.name}, model: {self.current_provider.model_names[self.model_idx]}")
         start_time = datetime.datetime.now()
+        response = LLMCallResponseSchema(**{})  # Just create and keep an empty schema
         try:
             response: LLMCallResponseSchema = self.call_provider(user_prompt, system_prompt, model_params.temperature, model_params.max_tokens, response_format=model_params.response_format)
             status = TranlsationStatus.COMPLETED
@@ -199,6 +203,7 @@ class Translator:
         }
         # Print the translator metadata
         translator_metadata = TranslatorMetadata(**translator_metadata)
-        logger.debug(f"{translator_metadata.model_dump()=}")
         translator_metadata.update(db)
+        # Log the amount of time it took
+        logger.info(f"Translation completed in {response.total_time_taken} seconds")
         return translator_metadata
