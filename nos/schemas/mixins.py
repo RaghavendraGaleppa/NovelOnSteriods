@@ -32,9 +32,13 @@ class DBFuncMixin(BaseModel):
         collection.delete_one({"_id": self.id})
             
     @classmethod
-    def load(cls: Type[T], db: Database, query: dict, many: bool=False) -> Optional[Union[T, List[T]]]:
+    def load(cls: Type[T], db: Database, query: dict, many: bool=False, sort: Optional[dict]=None, limit: Optional[int]=None) -> Optional[Union[T, List[T]]]:
         if many:
             data = db[cls._collection_name].find(query)
+            if sort:
+                data = data.sort(sort)
+            if limit:
+                data = data.limit(limit)
         else:
             data = db[cls._collection_name].find_one(query)
         if not data:

@@ -41,7 +41,7 @@ prompt_content:
         "无敌流": "Invincible"
       }}
 
-    ### Tags to Translate ###
-    {CHINESE_TAGS_JSON_ARRAY}
-
     Provide your response as a single, valid JSON object.
+    ### Tags to Translate ###
+    **INPUT:**
+

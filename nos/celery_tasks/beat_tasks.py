@@ -147,3 +147,6 @@ def beat_update_providers():
             provider_from_db.priority = provider.priority
             provider_from_db.update(db=db)
             logger.debug(f"Provider {provider.name} updated in db")
+
+            
+

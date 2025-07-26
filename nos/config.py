@@ -34,7 +34,7 @@ celery_app = Celery(
     "celery_app",
     broker="redis://localhost:6379/0",
     backend="redis://localhost:6379/0",
-    include=["nos.celery_tasks.beat_tasks"]
+    include=["nos.celery_tasks.beat_tasks", "nos.celery_tasks.dispatchers", "nos.celery_tasks.tasks"]
 )
 
 
@@ -50,5 +50,9 @@ celery_app.conf.beat_schedule = {
     "beat-update-providers": {
         'task': "nos.celery_tasks.beat_tasks.beat_update_providers",
         'schedule': timedelta(minutes=1),
+    },
+    "dispatch-novel-metadata-translation": {
+        'task': "nos.celery_tasks.dispatchers.dispatch_novel_metadata_translation",
+        'schedule': timedelta(minutes=5),
     }
 }
