@@ -36,7 +36,7 @@ def mock_rate_limit():
 
 class Translator:
 
-    def __init__(self, providers: List[Provider]):
+    def __init__(self):
         """ Setup the translator """
         self.switch_providers()
         self.setup_client()
