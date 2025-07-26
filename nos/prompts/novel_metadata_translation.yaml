@@ -59,6 +59,47 @@ prompt_content:
       "description": "Elder: \"Do you want revenge?\" Youth: \"I have been repeatedly humiliated by the strong and regarded as trash by my master. How could I not want revenge?\" The elder patted the youth's head and sighed: \"Good child, let me pass on my skills to you.\" The youth was startled: \"Senior! How can this be?\" The elder stretched out his hand: \"Give me your phone.\" Looking at the changes on his phone, the youth was shocked: \"Senior! Where did this century of cultivation power come from?\" The elder smiled slightly: \"Good child, this is your backup power in the Heavenly Court. You can use it whenever you have an urgent need in the future. Don't be insulted by others again.\" The youth frowned: \"Isn't this a 'mana loan'? I'm afraid...\" The elder: \"The Heavenly Court is a big platform. New users who borrow a hundred years of power get 30 days interest-free, with a minimum daily interest of half a day's worth of power, which is less than what you gain from one full cycle of cultivation breathing.\""
     }
     ```
+    
+    ### High-Quality Example 2 ###
+
+    **Input:**
+    ```json
+    {
+      "title_raw": "幽冥画皮卷",
+      "author_raw": "沁纸花青\\xa0\\xa0著",
+      "description_raw": "\\n              \\u3000\\u3000幽冥画皮卷小说由一七小说提供精彩免费全文阅读：一般来说，李无相会在每半年或者五千里的时候对自己进行一次小保养。主要项目是表皮养护，内脏翻新，根据实际情况看看要不要添加油脂体液。画皮的时候要注意用料，否则遇到气候恶劣的极端情况，会爆皮或者有小裂纹。翻新内脏的时候还是习惯用竹纸，虽然已经欺师灭祖了，但主打一个怀旧不忘本。岁岁添补，修旧如新，这就是长生之道。-------------------------------书友群号：872670350等更的朋友可以移步去看作者另外两本书。智战巅峰的短篇小说《非正常世界修仙法则》温馨愉悦的仙侠小说《心魔》"
+    }
+    ```
+
+    **Output:**
+    ```json
+    {
+      "title": "Netherworld Painted Skin Scroll",
+      "author": "Qin Zhi Hua Qing",
+      "description": "Generally speaking, Li Wuxiang performs minor maintenance on himself every six months or five thousand miles. The main items are skin care and internal organ refurbishment, with the addition of oils and bodily fluids as needed. When painting the skin, one must pay attention to the materials used, otherwise, in extreme weather conditions, the skin might crack or develop small fissures. When refurbishing his internal organs, he is still accustomed to using bamboo paper. Although he has betrayed his master's teachings, his main principle is to be nostalgic and not forget his roots. Adding and repairing year after year, making the old new again—this is the way of long life."
+    }
+    ```
+
+    ### High-Quality Example 3 ###
+
+    **Input:**
+    ```json
+    {
+      "title_raw": "从升级建筑开始长生",
+      "author_raw": "满船轻梦\\xa0\\xa0著",
+      "description_raw": "\\n              \\u3000\\u3000从升级建筑开始长生小说由一七小说提供精彩免费全文阅读：【种田流】【凡人流】【经营流】计缘穿越修仙世界，虽侥幸成了个修仙者，但却也是落了个给修仙宗门当捕鱼人的命。就这开局，他原以为自己多半只能走上莫欺少年穷，中年穷，老年穷这条路了。可没曾想，竟意外觉醒一块建筑升级面板。【鱼塘lv1：鱼苗生长速度+20%，半灵鱼有一定几率 进化成灵鱼】【洞府lv1：墙体自愈，基础避尘结界，夜间灵气浓度+20%】【鸡圈lv1：灵卵一日一产，蕴含微量灵气，可辟谷】【猪圈lv1 ：灵豚七日增肌百斤，血肉含淬体药性，并可加速伤口愈合】【灵田lv1：作物周期-30%，产出蕴含微弱木灵气】【……】从最基础的【鱼塘 】到修仙界【炼丹房】【炼器房】，只要是计缘的建筑，通通可以升级。“修仙修仙，修的不是打打杀杀，而是长生久视。”若干年后，当天骄折戟，圣地腐朽，大能陨落，唯有“计天尊”身化不朽，万古长青。"
+    }
+    ```
+
+    **Output:**
+    ```json
+    {
+      "title": "Achieving Longevity by Upgrading Buildings",
+      "author": "Man Chuan Qing Meng",
+      "description": "Ji Yuan transmigrated to a cultivation world. Although he was fortunate enough to become a cultivator, he was fated to be a fisherman for a cultivation sect. With such a start, he thought he was destined to walk the path of 'don't bully a young man for being poor, a middle-aged man for being poor, or an old man for being poor.' But unexpectedly, he awakened a building upgrade panel.\n\n[Fish Pond lv1: Fish fry growth speed +20%, semi-spirit fish have a chance to evolve into spirit fish]\n[Cave Abode lv1: Walls self-heal, basic dust-repelling barrier, spiritual energy concentration at night +20%]\n[Chicken Coop lv1: Spirit eggs produced once a day, contain trace amounts of spiritual energy, can sustain life]\n[Pig Pen lv1: Spirit pigs gain 100 jin of muscle in seven days, their flesh has body-tempering medicinal properties and can accelerate wound healing]\n[Spirit Field lv1: Crop cycle -30%, produce contains faint wood spiritual energy]\n[...]\n\nFrom the most basic [Fish Pond] to the cultivation world's [Alchemy Room] and [Smithing Room], as long as it was Ji Yuan's building, it could be upgraded.\n\n\"Cultivation isn't about fighting and killing; it's about achieving longevity and eternal vision.\"\n\nMany years later, when prodigies fell, sacred lands decayed, and great powers perished, only 'Celestial Master Ji' had transformed into an immortal, everlasting through the ages."
+    }
+    ```
+
 
     ### Data to Process ###
 
