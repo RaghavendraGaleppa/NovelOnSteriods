@@ -32,7 +32,7 @@ def dispatch_novel_metadata_translation():
     """ This is beat task that is supposed to run every 5 mins """
 
     if not check_active_celery_workers():
-        logger.info("No active celery workers. Skipping dispatch")
+        logger.error("No active celery workers. Skipping dispatch")
         return
     
     query = {
