@@ -7,6 +7,10 @@ from nos.schemas.scraping_schema import NovelRawData
 
 
 class Scrape1qxs(scrapy.Spider):
+    """
+        - This scraper is used to get the list of all novels from 1qxs.
+        - It will then parse the novel details for each novel from the list and save them in the db
+    """
     name = "scrape_1qxs"
     custom_settings = {
         'USER_AGENT': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36',
@@ -47,7 +51,7 @@ class Scrape1qxs(scrapy.Spider):
         _fingerprint = hashlib.sha256(f"{source_name}{title_raw}{novel_url}".encode()).hexdigest()
 
         novel_data = {
-            # Make exact fiesl in this dict
+            # Make exact fields in this dict
             "novel_url": novel_url,
             "title_raw": title_raw,
             "author_raw": author_raw,

@@ -6,6 +6,7 @@ from datetime import datetime
 
 from nos.schemas.mixins import DBFuncMixin
 from nos.config import logger
+from nos.config import db as db_main
 
 
 class NovelRawData(DBFuncMixin):
@@ -32,9 +33,9 @@ class NovelRawData(DBFuncMixin):
     
     # Metadata
     all_data_parsed: bool = Field(default=False, description="This will be set to True after the raw data is fully translated")
-    fingerprint: str
+    fingerprint: str  # Fingerprints will act as unique identifiers for novels. Unlike _id, we can regenerate the fingerprint if the novel is scraped again.
 
-    def update(self, db: Database):
+    def update(self, db: Database=db_main):
         # If _id is None, insert it else update it
         collection = db[self._collection_name]
         if self.id is None:

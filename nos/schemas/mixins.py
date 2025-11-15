@@ -3,6 +3,8 @@ from pydantic import Field, BaseModel, ConfigDict
 from pymongo.database import Database
 from typing import Optional, Union, List, Any, TypeVar, Type, ClassVar
 
+from nos.config import db as db_main
+
 T = TypeVar("T", bound="DBFuncMixin")
 
 
@@ -14,7 +16,7 @@ class DBFuncMixin(BaseModel):
     id: Optional[ObjectId] = Field(default=None, description="The id of the object", alias="_id", exclude=True)
     _collection_name: ClassVar[str]
 
-    def update(self, db: Database):
+    def update(self, db: Database=db_main):
         # If _id is None, insert it else update it
         collection = db[self._collection_name]
         data_to_dump = self.model_dump()  

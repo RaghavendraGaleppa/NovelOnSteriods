@@ -10,6 +10,6 @@ class TranslationEntity(DBFuncMixin):
 
     _collection_name: ClassVar[str] = "translation_entities"
 
-    key: str = Field(description="The key of the translation entity. This will in raw chinese")
+    key: str = Field(description="The key of the translation entity. This will be in raw chinese")
     value: str = Field(description="The translated value of the key")
     type: TranslationEntityType = Field(description="The type of the translation entity")
